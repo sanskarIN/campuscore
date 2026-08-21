@@ -88,7 +88,7 @@ export interface StaffMember {
 
 export interface AnnouncementAttachment {
   id: string;
-  originalFileName: string;
+  fileName: string;
   contentType: string;
   sizeBytes: number;
 }
