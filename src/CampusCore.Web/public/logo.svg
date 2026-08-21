@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">CampusCore logo</title>
+  <desc id="desc">An open book beneath a simple academic building.</desc>
+  <rect width="128" height="128" rx="28" fill="#0f172a"/>
+  <path d="M24 46 64 24l40 22-40 22-40-22Z" fill="#38bdf8"/>
+  <path d="M36 58h56v11H36zM42 72h44v8H42zM34 84h60v10H34z" fill="#e2e8f0"/>
+  <path d="M25 99c14-7 27-8 39-2 12-6 25-5 39 2v10c-14-6-27-7-39-1-12-6-25-5-39 1V99Z" fill="#22c55e"/>
+</svg>
