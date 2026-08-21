@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Restore
+        run: dotnet restore CampusCore.sln
+
+      - name: Verify formatting
+        run: dotnet format CampusCore.sln --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build CampusCore.sln --configuration Release --no-restore -warnaserror
+
+      - name: Test
+        run: dotnet test CampusCore.sln --configuration Release --no-build --logger "trx;LogFileName=backend-tests.trx"
+
+      - name: Check vulnerable NuGet packages
+        run: dotnet list CampusCore.sln package --vulnerable --include-transitive
+
+  web:
+    name: Web quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/CampusCore.Web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: src/CampusCore.Web/package-lock.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+
+      - name: Upload web artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: campuscore-web
+          path: src/CampusCore.Web/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  compose:
+    name: Container configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Validate Compose
+        run: docker compose config --quiet
