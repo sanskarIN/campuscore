@@ -1,0 +1,41 @@
+name: Feature request
+description: Propose a coherent improvement to CampusCore.
+title: "feat: "
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or user need
+      description: Explain the student-management problem this should solve.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the workflow, expected behavior, and affected roles.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: roles
+    attributes:
+      label: Primary users
+      multiple: true
+      options: [Administrator, Registrar, Teacher, Student/Guardian future portal, Maintainer]
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Security, privacy, accessibility, or migration considerations
+      description: Note data sensitivity, permissions, keyboard/screen-reader behavior, and migration impact where relevant.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This request is related to a real CampusCore workflow rather than feature-count inflation.
+          required: true
