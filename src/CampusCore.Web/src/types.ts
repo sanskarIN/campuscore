@@ -123,12 +123,22 @@ export interface InstitutionSettings {
 
 export interface AuditLog {
   id: string;
-  actorUserId?: string | null;
+  occurredAtUtc: string;
+  actorUserId: string;
   action: string;
   entityType: string;
   entityId: string;
-  occurredAtUtc: string;
-  detailsJson?: string | null;
+  safeMetadataJson: string | null;
+  correlationId: string | null;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string | null;
+  displayName: string;
+  isActive: boolean;
+  lockoutEnd: string | null;
+  roles: string[];
 }
 
 export interface CreateStudentInput {
