@@ -46,7 +46,7 @@ jobs:
         run: sha256sum *.tar.gz > SHA256SUMS.txt
 
       - name: Upload workflow artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: campuscore-${{ github.ref_name }}
           path: |
