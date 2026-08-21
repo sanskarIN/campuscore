@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
 import { AppShell } from './components/AppShell';
@@ -13,7 +14,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { StaffPage } from './pages/StaffPage';
 import { StudentsPage } from './pages/StudentsPage';
 
-function AdministratorRoute({ children }: { children: React.ReactNode }) {
+function AdministratorRoute({ children }: { children: ReactNode }) {
   const { hasAnyRole } = useAuth();
   return hasAnyRole('Administrator') ? children : <Navigate to="/" replace />;
 }
