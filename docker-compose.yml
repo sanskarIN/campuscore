@@ -16,5 +16,47 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build:
+      context: .
+      dockerfile: src/CampusCore.Api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=${POSTGRES_DB:-campuscore};Username=${POSTGRES_USER:-campuscore};Password=${POSTGRES_PASSWORD:-campuscore-local-only}
+      Jwt__Issuer: CampusCore
+      Jwt__Audience: CampusCore.Web
+      Jwt__Key: ${CAMPUSCORE_JWT_KEY:-campuscore-compose-development-only-change-before-production-123456789}
+      BootstrapAdmin__Key: ${CAMPUSCORE_BOOTSTRAP_KEY:-campuscore-compose-bootstrap-local-only}
+      Storage__RootPath: /data/uploads
+    ports:
+      - "5080:8080"
+    volumes:
+      - campuscore-uploads:/data/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  web:
+    build:
+      context: .
+      dockerfile: src/CampusCore.Web/Dockerfile
+      args:
+        VITE_API_BASE_URL: /
+        VITE_APP_VERSION: ${CAMPUSCORE_VERSION:-0.1.0}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+
 volumes:
   campuscore-postgres:
+  campuscore-uploads:
