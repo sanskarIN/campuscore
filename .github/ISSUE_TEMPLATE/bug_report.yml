@@ -1,0 +1,57 @@
+name: Bug report
+description: Report a reproducible CampusCore defect.
+title: "bug: "
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve CampusCore. Do not include real student data, credentials, tokens, or private logs.
+  - type: input
+    id: version
+    attributes:
+      label: CampusCore version or commit
+      placeholder: v0.1.0 or commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Web/PWA, API, Database, Authentication, Students, Academics, Operations, Announcements, Administration, Documentation, CI/Release, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the issue without personal or secret data.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Start from...
+        2. Select...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser/OS, .NET SDK, Node version, and deployment mode where relevant.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Data safety
+      options:
+        - label: I removed passwords, tokens, private student/staff data, and production secrets from this report.
+          required: true
