@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError } from '../api/client';
 
 interface ResourceState<T> {
@@ -9,6 +9,8 @@ interface ResourceState<T> {
 }
 
 export function useApiResource<T>(loader: () => Promise<T>, dependencies: readonly unknown[] = []): ResourceState<T> {
+  const loaderRef = useRef(loader);
+  loaderRef.current = loader;
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +23,7 @@ export function useApiResource<T>(loader: () => Promise<T>, dependencies: readon
     setLoading(true);
     setError(null);
 
-    void loader()
+    void loaderRef.current()
       .then((result) => {
         if (!cancelled) setData(result);
       })
@@ -36,7 +38,7 @@ export function useApiResource<T>(loader: () => Promise<T>, dependencies: readon
     return () => {
       cancelled = true;
     };
-  }, [loader, revision, ...dependencies]);
+  }, [revision, ...dependencies]);
 
   return { data, loading, error, reload };
 }
