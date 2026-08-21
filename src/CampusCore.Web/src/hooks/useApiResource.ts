@@ -36,9 +36,7 @@ export function useApiResource<T>(loader: () => Promise<T>, dependencies: readon
     return () => {
       cancelled = true;
     };
-    // The caller explicitly controls loader dependencies with the supplied array.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [revision, ...dependencies]);
+  }, [loader, revision, ...dependencies]);
 
   return { data, loading, error, reload };
 }
