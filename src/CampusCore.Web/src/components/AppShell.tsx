@@ -8,6 +8,7 @@ const navItems = [
   ['/search', 'Search'],
   ['/students', 'Students'],
   ['/academics', 'Academics'],
+  ['/operations', 'Operations'],
   ['/staff', 'Staff'],
   ['/announcements', 'Announcements'],
   ['/about', 'About'],
@@ -43,9 +44,10 @@ export function AppShell() {
             </NavLink>
           ))}
           {hasAnyRole('Administrator') ? (
-            <NavLink to="/settings" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-              Settings & audit
-            </NavLink>
+            <>
+              <NavLink to="/catalog" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Academic catalog</NavLink>
+              <NavLink to="/settings" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Settings & audit</NavLink>
+            </>
           ) : null}
         </nav>
         <div className="sidebar-footer">
@@ -69,9 +71,7 @@ export function AppShell() {
                 <option value="dark">Dark theme</option>
               </select>
             </label>
-            <button className="button button-secondary" type="button" onClick={logout}>
-              Sign out
-            </button>
+            <button className="button button-secondary" type="button" onClick={logout}>Sign out</button>
           </div>
         </header>
         {!online ? (
