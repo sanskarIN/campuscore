@@ -76,6 +76,10 @@ app.MapCatalogEndpoints();
 app.MapCommunicationEndpoints();
 app.MapAdminEndpoints();
 app.MapSearchEndpoints();
+app.MapBulkEndpoints();
+app.MapReportCardEndpoints();
+app.MapAttachmentEndpoints();
+app.MapUserAdminEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {
