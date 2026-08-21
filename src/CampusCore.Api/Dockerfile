@@ -1,0 +1,15 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet restore CampusCore.sln
+RUN dotnet publish src/CampusCore.Api/CampusCore.Api.csproj --configuration Release --no-restore --output /app/publish /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+ENV ASPNETCORE_URLS=http://+:8080 \
+    DOTNET_EnableDiagnostics=0
+RUN addgroup --system campuscore && adduser --system --ingroup campuscore campuscore
+COPY --from=build --chown=campuscore:campuscore /app/publish .
+USER campuscore
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "CampusCore.Api.dll"]
