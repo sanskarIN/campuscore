@@ -13,6 +13,11 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         {
             await WriteProblem(context, StatusCodes.Status409Conflict, "Request conflict", ex.Message);
         }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+        {
+            logger.LogWarning(ex, "Database constraint conflict for {TraceIdentifier}", context.TraceIdentifier);
+            await WriteProblem(context, StatusCodes.Status409Conflict, "Request conflict", "The requested change conflicts with existing data.");
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled request failure for {TraceIdentifier}", context.TraceIdentifier);
