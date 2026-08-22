@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CampusCore.Api", "src\Campu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CampusCore.Domain.Tests", "tests\CampusCore.Domain.Tests\CampusCore.Domain.Tests.csproj", "{48F0CD21-A496-487B-9D98-635148062BE2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CampusCore.Infrastructure.Tests", "tests\CampusCore.Infrastructure.Tests\CampusCore.Infrastructure.Tests.csproj", "{3F9BFF8F-3C23-4A88-9F5A-75024A43B871}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,5 +40,9 @@ Global
 		{48F0CD21-A496-487B-9D98-635148062BE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48F0CD21-A496-487B-9D98-635148062BE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48F0CD21-A496-487B-9D98-635148062BE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F9BFF8F-3C23-4A88-9F5A-75024A43B871}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F9BFF8F-3C23-4A88-9F5A-75024A43B871}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F9BFF8F-3C23-4A88-9F5A-75024A43B871}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F9BFF8F-3C23-4A88-9F5A-75024A43B871}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
