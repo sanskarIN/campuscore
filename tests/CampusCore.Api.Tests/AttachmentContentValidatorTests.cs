@@ -64,7 +64,7 @@ public sealed class AttachmentContentValidatorTests
             foreach (var name in entries)
             {
                 var entry = archive.CreateEntry(name);
-                using var content = new StreamWriter(entry.Open(), Encoding.UTF8, leaveOpen: false);
+                using var content = new StreamWriter(entry.Open(), Encoding.UTF8, 1024, leaveOpen: false);
                 content.Write("<test />");
             }
         }
