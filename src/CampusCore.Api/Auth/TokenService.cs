@@ -11,6 +11,8 @@ public sealed record AuthResponse(string AccessToken, DateTimeOffset ExpiresAtUt
 
 public sealed class TokenService(IConfiguration configuration, UserManager<ApplicationUser> users)
 {
+    public const string SecurityStampClaim = "campuscore:security_stamp";
+
     public async Task<AuthResponse> CreateAsync(ApplicationUser user)
     {
         var key = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is required.");
@@ -18,14 +20,21 @@ public sealed class TokenService(IConfiguration configuration, UserManager<Appli
         var issuer = configuration["Jwt:Issuer"] ?? "CampusCore";
         var audience = configuration["Jwt:Audience"] ?? "CampusCore.Web";
         var roles = await users.GetRolesAsync(user);
-        var expires = DateTimeOffset.UtcNow.AddHours(2);
+        var securityStamp = await users.GetSecurityStampAsync(user);
+        if (string.IsNullOrWhiteSpace(securityStamp)) throw new InvalidOperationException("User security stamp is required.");
+
+        var tokenMinutes = 120;
+        if (int.TryParse(configuration["Jwt:AccessTokenMinutes"], out var configuredMinutes))
+            tokenMinutes = Math.Clamp(configuredMinutes, 5, 720);
+        var expires = DateTimeOffset.UtcNow.AddMinutes(tokenMinutes);
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id),
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Name, user.DisplayName),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N"))
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
+            new(SecurityStampClaim, securityStamp)
         };
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
         var token = new JwtSecurityToken(issuer, audience, claims, DateTime.UtcNow, expires.UtcDateTime,
