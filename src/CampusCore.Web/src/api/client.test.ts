@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AuthResponse } from '../types';
 import { saveSession } from '../auth/session';
-import { ApiError, apiRequest } from './client';
+import { ApiError, apiDownload, apiRequest } from './client';
 
 function memoryStorage(): Storage {
   const values = new Map<string, string>();
@@ -61,5 +61,29 @@ describe('API client', () => {
     await expect(apiRequest('/api/test')).rejects.toMatchObject({ status: 401 });
     expect(window.sessionStorage.length).toBe(0);
     expect(window.dispatchEvent).toHaveBeenCalledOnce();
+  });
+
+  it('clears the session after an authenticated download returns 401', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 401 })));
+
+    await expect(apiDownload('/api/attachments/example')).rejects.toMatchObject({ status: 401 });
+    expect(window.sessionStorage.length).toBe(0);
+    expect(window.dispatchEvent).toHaveBeenCalledOnce();
+  });
+
+  it('downloads successful binary responses without cookies', async () => {
+    const expected = new Blob(['report']);
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const headers = new Headers(init?.headers);
+      expect(headers.get('Authorization')).toBe('Bearer secure-test-token');
+      expect(init?.credentials).toBe('omit');
+      return new Response(expected, { status: 200, headers: { 'Content-Type': 'application/pdf' } });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await apiDownload('/api/reports/sample');
+
+    expect(result.size).toBe(expected.size);
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 });
