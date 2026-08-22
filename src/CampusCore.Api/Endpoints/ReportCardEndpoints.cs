@@ -9,10 +9,11 @@ public static class ReportCardEndpoints
         endpoints.MapGet("/api/reports/report-card/{studentId:guid}/{academicYearId:guid}", async (
             Guid studentId,
             Guid academicYearId,
+            string? scaleName,
             ReportCardService service,
             CancellationToken ct) =>
         {
-            var report = await service.GetAsync(studentId, academicYearId, ct);
+            var report = await service.GetAsync(studentId, academicYearId, scaleName, ct);
             return report is null ? Results.NotFound() : Results.Ok(report);
         }).WithTags("Reports").RequireAuthorization();
 
