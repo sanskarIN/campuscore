@@ -1,3 +1,4 @@
+using CampusCore.Api.Validation;
 using CampusCore.Application.Abstractions;
 using CampusCore.Domain.Entities;
 using CampusCore.Infrastructure.Identity;
@@ -27,16 +28,23 @@ public static class AttachmentEndpoints
         group.MapPost("/", async (Guid announcementId, IFormFile file, IApplicationDbContext db, IFileStorage storage, IAuditWriter audit, CancellationToken ct) =>
         {
             if (!await db.Announcements.AnyAsync(x => x.Id == announcementId, ct)) return Results.NotFound();
-            var safeOriginalName = Path.GetFileName(file.FileName);
-            var extension = Path.GetExtension(safeOriginalName).ToLowerInvariant();
             if (file.Length <= 0 || file.Length > MaxBytes) return Results.BadRequest(new { message = "Attachment must be between 1 byte and 10 MB." });
-            if (!Allowed.TryGetValue(extension, out var contentTypes) || !contentTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+
+            var normalizedInputName = (file.FileName ?? string.Empty).Replace('\\', '/');
+            var leafName = normalizedInputName[(normalizedInputName.LastIndexOf('/') + 1)..];
+            var extension = Path.GetExtension(leafName).ToLowerInvariant();
+            var declaredContentType = (file.ContentType ?? string.Empty).Split(';', 2)[0].Trim();
+            if (!Allowed.TryGetValue(extension, out var contentTypes) || !contentTypes.Contains(declaredContentType, StringComparer.OrdinalIgnoreCase))
                 return Results.BadRequest(new { message = "Attachment type is not allowed." });
+            var safeOriginalName = SanitizeFileName(leafName, extension);
 
             await using var input = file.OpenReadStream();
             using var buffered = new MemoryStream((int)Math.Min(file.Length, MaxBytes));
             await input.CopyToAsync(buffered, ct);
-            if (!LooksValid(extension, buffered.ToArray()))
+            if (buffered.Length != file.Length)
+                return Results.BadRequest(new { message = "Attachment length does not match the uploaded content." });
+            var content = buffered.ToArray();
+            if (!AttachmentContentValidator.LooksValid(extension, content))
                 return Results.BadRequest(new { message = "Attachment content does not match its declared type." });
             buffered.Position = 0;
 
@@ -44,9 +52,9 @@ public static class AttachmentEndpoints
             var entity = new AnnouncementAttachment
             {
                 AnnouncementId = announcementId,
-                FileName = safeOriginalName.Length > 240 ? safeOriginalName[..240] : safeOriginalName,
+                FileName = safeOriginalName,
                 StoredName = storedName,
-                ContentType = file.ContentType,
+                ContentType = declaredContentType,
                 SizeBytes = file.Length
             };
             try
@@ -85,16 +93,15 @@ public static class AttachmentEndpoints
         return endpoints;
     }
 
-    private static bool LooksValid(string extension, ReadOnlySpan<byte> bytes)
+    private static string SanitizeFileName(string name, string extension)
     {
-        return extension switch
-        {
-            ".pdf" => bytes.StartsWith("%PDF-"u8),
-            ".png" => bytes.Length >= 8 && bytes[..8].SequenceEqual(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }),
-            ".jpg" or ".jpeg" => bytes.Length >= 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF,
-            ".docx" or ".xlsx" => bytes.Length >= 4 && bytes[0] == 0x50 && bytes[1] == 0x4B && bytes[2] == 0x03 && bytes[3] == 0x04,
-            ".txt" or ".csv" => !bytes.Contains((byte)0),
-            _ => false
-        };
+        var cleaned = new string(name.Where(ch => !char.IsControl(ch)).ToArray()).Trim();
+        if (string.IsNullOrWhiteSpace(cleaned)) cleaned = $"attachment{extension}";
+        if (cleaned.Length <= 240) return cleaned;
+
+        var preservedExtension = Path.GetExtension(cleaned);
+        if (preservedExtension.Length > 20) preservedExtension = extension;
+        var stemLength = Math.Max(1, 240 - preservedExtension.Length);
+        return cleaned[..stemLength] + preservedExtension;
     }
 }
