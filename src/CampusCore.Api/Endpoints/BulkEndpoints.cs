@@ -11,6 +11,8 @@ namespace CampusCore.Api.Endpoints;
 public static class BulkEndpoints
 {
     private const long MaxImportBytes = 2 * 1024 * 1024;
+    private const int MaxImportRows = 5_000;
+    private const int MaxBulkStatusStudents = 500;
 
     public sealed record ImportIssue(int Row, string Field, string Message);
     public sealed record ImportPreview(int TotalRows, int ValidRows, IReadOnlyList<ImportIssue> Issues);
@@ -53,7 +55,12 @@ public static class BulkEndpoints
 
         group.MapPatch("/students/status", async (BulkStatusRequest request, ApplicationDbContext db, IAuditWriter audit, CancellationToken ct) =>
         {
-            var ids = request.StudentIds.Distinct().Take(500).ToArray();
+            if (request.StudentIds is null || request.StudentIds.Count == 0)
+                return Results.BadRequest(new { message = "At least one student is required." });
+            if (request.StudentIds.Count > MaxBulkStatusStudents)
+                return Results.BadRequest(new { message = $"A maximum of {MaxBulkStatusStudents} students can be updated in one request." });
+
+            var ids = request.StudentIds.Distinct().ToArray();
             if (ids.Length == 0) return Results.BadRequest(new { message = "At least one student is required." });
             var students = await db.Students.Where(x => ids.Contains(x.Id)).ToListAsync(ct);
             if (students.Count != ids.Length) return Results.BadRequest(new { message = "One or more student identifiers are invalid." });
@@ -85,6 +92,8 @@ public static class BulkEndpoints
         }
 
         if (records.Count == 0) return ParseResult.FromError(Results.BadRequest(new { message = "CSV is empty." }));
+        if (records.Count - 1 > MaxImportRows)
+            return ParseResult.FromError(Results.BadRequest(new { message = $"CSV imports are limited to {MaxImportRows} data rows." }));
         var expected = new[] { "AdmissionNumber", "FirstName", "LastName", "DateOfBirth", "Email", "Phone", "AddressLine" };
         var header = records[0].Select(x => x.Trim()).ToArray();
         if (!header.SequenceEqual(expected, StringComparer.OrdinalIgnoreCase))
@@ -106,8 +115,19 @@ public static class BulkEndpoints
             var admission = record[0].Trim();
             var firstName = record[1].Trim();
             var lastName = record[2].Trim();
+            var email = record[4].Trim();
+            var phone = record[5].Trim();
+            var address = record[6].Trim();
+
             if (string.IsNullOrWhiteSpace(admission)) issues.Add(new ImportIssue(displayRow, "AdmissionNumber", "Admission number is required."));
+            else if (admission.Length > 64) issues.Add(new ImportIssue(displayRow, "AdmissionNumber", "Admission number cannot exceed 64 characters."));
             if (string.IsNullOrWhiteSpace(firstName)) issues.Add(new ImportIssue(displayRow, "FirstName", "First name is required."));
+            else if (firstName.Length > 120) issues.Add(new ImportIssue(displayRow, "FirstName", "First name cannot exceed 120 characters."));
+            if (lastName.Length > 120) issues.Add(new ImportIssue(displayRow, "LastName", "Last name cannot exceed 120 characters."));
+            if (email.Length > 254) issues.Add(new ImportIssue(displayRow, "Email", "Email cannot exceed 254 characters."));
+            if (phone.Length > 40) issues.Add(new ImportIssue(displayRow, "Phone", "Phone cannot exceed 40 characters."));
+            if (address.Length > 1000) issues.Add(new ImportIssue(displayRow, "AddressLine", "Address cannot exceed 1000 characters."));
+
             if (!DateOnly.TryParseExact(record[3].Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateOfBirth))
                 issues.Add(new ImportIssue(displayRow, "DateOfBirth", "Use yyyy-MM-dd."));
             else if (dateOfBirth > DateOnly.FromDateTime(DateTime.UtcNow))
@@ -116,7 +136,7 @@ public static class BulkEndpoints
                 issues.Add(new ImportIssue(displayRow, "AdmissionNumber", "Admission number is duplicated in this file."));
 
             if (issues.Any(x => x.Row == displayRow)) continue;
-            rows.Add(new StudentImportRow(admission, firstName, lastName, dateOfBirth, record[4].Trim(), record[5].Trim(), record[6].Trim()));
+            rows.Add(new StudentImportRow(admission, firstName, lastName, dateOfBirth, email, phone, address));
         }
 
         if (admissions.Count > 0)
@@ -130,7 +150,10 @@ public static class BulkEndpoints
             }
         }
 
-        var preview = new ImportPreview(Math.Max(0, records.Count - 1), Math.Max(0, records.Count - 1 - issues.Select(x => x.Row).Where(x => x > 0).Distinct().Count()), issues.OrderBy(x => x.Row).ThenBy(x => x.Field).ToList());
+        var preview = new ImportPreview(
+            Math.Max(0, records.Count - 1),
+            Math.Max(0, records.Count - 1 - issues.Select(x => x.Row).Where(x => x > 0).Distinct().Count()),
+            issues.OrderBy(x => x.Row).ThenBy(x => x.Field).ToList());
         return new ParseResult(rows, preview, null);
     }
 
