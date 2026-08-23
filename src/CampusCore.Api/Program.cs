@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using CampusCore.Api.Auth;
+using CampusCore.Api.Configuration;
 using CampusCore.Api.Endpoints;
 using CampusCore.Api.Health;
 using CampusCore.Api.Middleware;
@@ -13,6 +14,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+ProductionConfigurationValidator.Validate(builder.Configuration, builder.Environment.IsProduction());
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
     throw new InvalidOperationException("Jwt:Key must be configured with at least 32 bytes. Development has an explicit local-only key; production must use a secret store.");
