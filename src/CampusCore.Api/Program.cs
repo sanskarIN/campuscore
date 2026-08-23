@@ -2,12 +2,14 @@ using System.Text;
 using System.Threading.RateLimiting;
 using CampusCore.Api.Auth;
 using CampusCore.Api.Endpoints;
+using CampusCore.Api.Health;
 using CampusCore.Api.Middleware;
 using CampusCore.Application;
 using CampusCore.Application.Abstractions;
 using CampusCore.Infrastructure;
 using CampusCore.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +24,8 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 {
     var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
@@ -66,7 +69,8 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
-app.MapHealthChecks("/healthz");
+app.MapHealthChecks("/healthz", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/readyz", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
 app.MapGet("/", () => Results.Ok(new { name = "CampusCore API", version = "0.1.0", credit = "Made by the Sanskar" }));
 app.MapAuthEndpoints();
 app.MapStudentEndpoints();
