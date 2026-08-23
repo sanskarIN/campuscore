@@ -9,7 +9,7 @@ WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080 \
     DOTNET_EnableDiagnostics=0
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends curl tar \
     && rm -rf /var/lib/apt/lists/* \
     && addgroup --system campuscore \
     && adduser --system --ingroup campuscore campuscore
