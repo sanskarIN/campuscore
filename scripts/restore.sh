@@ -26,7 +26,7 @@ compose() {
 }
 
 cleanup() {
-  compose exec -T postgres rm -f "$DB_TMP" >/dev/null 2>&1 || true
+  compose exec -T --user root postgres rm -f "$DB_TMP" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT INT TERM
 
@@ -37,7 +37,7 @@ compose stop web api >/dev/null
 
 echo "Restoring PostgreSQL database..."
 compose cp "$BACKUP_DIR/database.dump" "postgres:${DB_TMP}" >/dev/null
-if ! compose exec -T postgres sh -ec \
+if ! compose exec -T --user root postgres sh -ec \
   'dropdb --if-exists --force --username "$POSTGRES_USER" "$POSTGRES_DB" && createdb --username "$POSTGRES_USER" "$POSTGRES_DB" && pg_restore --exit-on-error --no-owner --no-acl --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" "$1"' \
   sh "$DB_TMP"; then
   echo "Database restore failed. API and web services remain stopped for inspection." >&2
@@ -45,10 +45,10 @@ if ! compose exec -T postgres sh -ec \
 fi
 
 echo "Restoring attachment volume..."
-if ! compose run --rm --no-deps -T \
+if ! compose run --rm --no-deps -T --user root \
   --volume "$UPLOADS_FILE:/tmp/campuscore-uploads.tar:ro" \
   --entrypoint sh api -ec \
-  'find /data/uploads -mindepth 1 -maxdepth 1 -exec rm -rf {} + && tar -xf /tmp/campuscore-uploads.tar -C /data/uploads'; then
+  'find /data/uploads -mindepth 1 -maxdepth 1 -exec rm -rf {} + && tar -xf /tmp/campuscore-uploads.tar -C /data/uploads && chown -R campuscore:campuscore /data/uploads'; then
   echo "Attachment restore failed. API and web services remain stopped for inspection." >&2
   exit 1
 fi
