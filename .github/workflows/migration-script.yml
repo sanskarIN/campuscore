@@ -42,11 +42,15 @@ jobs:
       - name: Restore projects
         run: dotnet restore CampusCore.sln
 
+      - name: Build migration projects
+        run: dotnet build CampusCore.sln --configuration Release --no-restore
+
       - name: Generate idempotent migration script
         run: |
           mkdir -p artifacts
           dotnet ef migrations script --idempotent \
             --no-build \
+            --configuration Release \
             --project src/CampusCore.Infrastructure \
             --startup-project src/CampusCore.Api \
             --output artifacts/migrations.sql
