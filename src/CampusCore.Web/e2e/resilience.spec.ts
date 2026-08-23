@@ -9,7 +9,7 @@ test('surfaces the private-data offline state without hiding the app shell', asy
 
   await expect(page.getByText('Offline shell', { exact: true })).toBeVisible();
   await expect(page.getByRole('status')).toContainText('private API data is never cached');
-  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toBeVisible();
+  await expect(page.getByLabel('Primary navigation')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 });
 
@@ -20,5 +20,5 @@ test('supports keyboard navigation through the authenticated shell', async ({ pa
   await page.keyboard.press('Enter');
 
   await expect(page).toHaveURL(/\/search$/);
-  await expect(page.getByRole('heading', { name: 'Search' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Global search' })).toBeVisible();
 });
