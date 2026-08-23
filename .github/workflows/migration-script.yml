@@ -1,0 +1,67 @@
+name: Migration Script
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/CampusCore.Infrastructure/**'
+      - 'src/CampusCore.Api/**'
+      - '.config/dotnet-tools.json'
+      - '.github/workflows/migration-script.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/CampusCore.Infrastructure/**'
+      - 'src/CampusCore.Api/**'
+      - '.config/dotnet-tools.json'
+      - '.github/workflows/migration-script.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migration-script-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: Generate idempotent migration SQL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Restore local tools
+        run: dotnet tool restore
+
+      - name: Restore projects
+        run: dotnet restore CampusCore.sln
+
+      - name: Generate idempotent migration script
+        run: |
+          mkdir -p artifacts
+          dotnet ef migrations script --idempotent \
+            --no-build \
+            --project src/CampusCore.Infrastructure \
+            --startup-project src/CampusCore.Api \
+            --output artifacts/migrations.sql
+
+      - name: Verify migration script is non-empty
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s artifacts/migrations.sql
+          grep -q '__EFMigrationsHistory' artifacts/migrations.sql
+
+      - name: Upload migration SQL
+        uses: actions/upload-artifact@v6
+        with:
+          name: campuscore-migrations-${{ github.sha }}
+          path: artifacts/migrations.sql
+          if-no-files-found: error
+          retention-days: 14
