@@ -163,6 +163,48 @@ jobs:
       - name: Validate Compose
         run: docker compose config --quiet
 
+  migrations:
+    name: Database migration integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Start clean database
+        run: docker compose up -d postgres --wait --wait-timeout 120
+
+      - name: Build and start API
+        run: docker compose up -d --build api --wait --wait-timeout 240
+
+      - name: Verify all committed migrations are applied
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(find src/CampusCore.Infrastructure/Persistence/Migrations -maxdepth 1 -type f -name '[0-9]*_*.cs' ! -name '*.Designer.cs' | wc -l | tr -d ' ')"
+          applied="$(docker compose exec -T postgres psql --username campuscore --dbname campuscore --tuples-only --no-align --command 'SELECT COUNT(*) FROM "__EFMigrationsHistory";' | tr -d '\r')"
+          test "$expected" -gt 0
+          test "$applied" = "$expected"
+
+      - name: Verify startup migration idempotence
+        shell: bash
+        run: |
+          set -euo pipefail
+          before="$(docker compose exec -T postgres psql --username campuscore --dbname campuscore --tuples-only --no-align --command 'SELECT COUNT(*) FROM "__EFMigrationsHistory";' | tr -d '\r')"
+          docker compose restart api
+          docker compose up -d api --wait --wait-timeout 180
+          after="$(docker compose exec -T postgres psql --username campuscore --dbname campuscore --tuples-only --no-align --command 'SELECT COUNT(*) FROM "__EFMigrationsHistory";' | tr -d '\r')"
+          test "$after" = "$before"
+          curl --fail --retry 20 --retry-delay 2 --retry-all-errors http://127.0.0.1:5080/readyz
+
+      - name: Show migration logs on failure
+        if: failure()
+        run: docker compose logs --no-color postgres api
+
+      - name: Tear down migration stack
+        if: always()
+        run: docker compose down -v --remove-orphans
+
   recovery:
     name: Backup and restore drill
     runs-on: ubuntu-latest
