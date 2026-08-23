@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-campuscore}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-campuscore-local-only}
     ports:
-      - "5432:5432"
+      - "${CAMPUSCORE_DB_BIND:-127.0.0.1}:${CAMPUSCORE_DB_PORT:-5432}:5432"
     volumes:
       - campuscore-postgres:/var/lib/postgresql/data
     healthcheck:
@@ -25,15 +25,16 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ConnectionStrings__Database: Host=postgres;Port=5432;Database=${POSTGRES_DB:-campuscore};Username=${POSTGRES_USER:-campuscore};Password=${POSTGRES_PASSWORD:-campuscore-local-only}
-      Jwt__Issuer: CampusCore
-      Jwt__Audience: CampusCore.Web
+      Jwt__Issuer: ${CAMPUSCORE_JWT_ISSUER:-CampusCore}
+      Jwt__Audience: ${CAMPUSCORE_JWT_AUDIENCE:-CampusCore.Web}
       Jwt__Key: ${CAMPUSCORE_JWT_KEY:-campuscore-compose-development-only-change-before-production-123456789}
       BootstrapAdmin__Key: ${CAMPUSCORE_BOOTSTRAP_KEY:-campuscore-compose-bootstrap-local-only}
+      AllowedHosts: ${CAMPUSCORE_ALLOWED_HOSTS:-*}
       Storage__RootPath: /data/uploads
     ports:
-      - "5080:8080"
+      - "${CAMPUSCORE_API_BIND:-127.0.0.1}:${CAMPUSCORE_API_PORT:-5080}:8080"
     volumes:
       - campuscore-uploads:/data/uploads
     healthcheck:
@@ -55,7 +56,7 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "8081:8080"
+      - "${CAMPUSCORE_WEB_BIND:-127.0.0.1}:${CAMPUSCORE_WEB_PORT:-8081}:8080"
 
 volumes:
   campuscore-postgres:
