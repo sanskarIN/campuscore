@@ -18,7 +18,7 @@ function Invoke-Compose {
 
     & docker compose -f $ComposeFile @ComposeArgs
     if ($LASTEXITCODE -ne 0) {
-        throw "docker compose failed with exit code $LASTEXITCODE: $($ComposeArgs -join ' ')"
+        throw "docker compose failed with exit code ${LASTEXITCODE}: $($ComposeArgs -join ' ')"
     }
 }
 
@@ -58,14 +58,8 @@ try {
     $checksums = "$databaseHash  database.dump`n$uploadsHash  uploads.tar`n"
     [System.IO.File]::WriteAllText((Join-Path $backupDirectory "SHA256SUMS"), $checksums, $utf8NoBom)
 
-    $manifest = @"
-format=campuscore-backup-v1
-created_at_utc=$timestamp
-database_file=database.dump
-uploads_file=uploads.tar
-checksums_file=SHA256SUMS
-"@
-    [System.IO.File]::WriteAllText((Join-Path $backupDirectory "manifest.txt"), $manifest.TrimStart("`r", "`n") + "`n", $utf8NoBom)
+    $manifest = "format=campuscore-backup-v1`ncreated_at_utc=$timestamp`ndatabase_file=database.dump`nuploads_file=uploads.tar`nchecksums_file=SHA256SUMS`n"
+    [System.IO.File]::WriteAllText((Join-Path $backupDirectory "manifest.txt"), $manifest, $utf8NoBom)
 
     Write-Host "Backup created: $backupDirectory"
 }
