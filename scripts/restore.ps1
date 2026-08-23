@@ -47,25 +47,25 @@ try {
     Write-Host "Restoring PostgreSQL database..."
     Invoke-Compose -ComposeArgs @("cp", (Join-Path $BackupDirectory "database.dump"), "postgres:${databaseTemp}")
     Invoke-Compose -ComposeArgs @(
-        "exec", "-T", "postgres", "sh", "-ec",
+        "exec", "-T", "--user", "root", "postgres", "sh", "-ec",
         'dropdb --if-exists --force --username "$POSTGRES_USER" "$POSTGRES_DB" && createdb --username "$POSTGRES_USER" "$POSTGRES_DB" && pg_restore --exit-on-error --no-owner --no-acl --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" "$1"',
         "sh", $databaseTemp
     )
 
     Write-Host "Restoring attachment volume..."
     Invoke-Compose -ComposeArgs @(
-        "run", "--rm", "--no-deps", "-T",
+        "run", "--rm", "--no-deps", "-T", "--user", "root",
         "--volume", "${uploadsFile}:/tmp/campuscore-uploads.tar:ro",
         "--entrypoint", "sh", "api", "-ec",
-        'find /data/uploads -mindepth 1 -maxdepth 1 -exec rm -rf {} + && tar -xf /tmp/campuscore-uploads.tar -C /data/uploads'
+        'find /data/uploads -mindepth 1 -maxdepth 1 -exec rm -rf {} + && tar -xf /tmp/campuscore-uploads.tar -C /data/uploads && chown -R campuscore:campuscore /data/uploads'
     )
 }
 catch {
-    Write-Error "Restore failed. API and web services remain stopped for inspection. $($_.Exception.Message)"
+    Write-Warning "Restore failed. API and web services remain stopped for inspection. $($_.Exception.Message)"
     throw
 }
 finally {
-    & docker compose -f $ComposeFile exec -T postgres rm -f $databaseTemp *> $null
+    & docker compose -f $ComposeFile exec -T --user root postgres rm -f $databaseTemp *> $null
 }
 
 Write-Host "Starting CampusCore and waiting for readiness dependencies..."
