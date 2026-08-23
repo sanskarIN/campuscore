@@ -32,3 +32,4 @@ Thumbs.db
 # Generated
 *.log
 artifacts/
+backups/
