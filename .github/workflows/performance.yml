@@ -1,0 +1,45 @@
+name: Performance Budget
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/CampusCore.Web/**'
+      - '.github/workflows/performance.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/CampusCore.Web/**'
+      - '.github/workflows/performance.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bundle-budget:
+    name: Web bundle budget
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/CampusCore.Web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Enforce bundle budget
+        run: npm run budget
