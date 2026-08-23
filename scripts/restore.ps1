@@ -24,7 +24,7 @@ function Invoke-Compose {
 
     & docker compose -f $ComposeFile @ComposeArgs
     if ($LASTEXITCODE -ne 0) {
-        throw "docker compose failed with exit code $LASTEXITCODE: $($ComposeArgs -join ' ')"
+        throw "docker compose failed with exit code ${LASTEXITCODE}: $($ComposeArgs -join ' ')"
     }
 }
 
