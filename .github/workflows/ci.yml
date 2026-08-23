@@ -82,6 +82,48 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  web-e2e:
+    name: Web E2E and accessibility
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/CampusCore.Web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: campuscore-playwright-report
+          path: src/CampusCore.Web/playwright-report
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload browser traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: campuscore-playwright-results
+          path: src/CampusCore.Web/test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
   operations-scripts:
     name: Operations script quality
     runs-on: ubuntu-latest
