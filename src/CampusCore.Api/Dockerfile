@@ -12,7 +12,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl tar \
     && rm -rf /var/lib/apt/lists/* \
     && addgroup --system campuscore \
-    && adduser --system --ingroup campuscore campuscore
+    && adduser --system --ingroup campuscore campuscore \
+    && mkdir -p /data/uploads \
+    && chown -R campuscore:campuscore /data
 COPY --from=build --chown=campuscore:campuscore /app/publish .
 USER campuscore
 EXPOSE 8080
