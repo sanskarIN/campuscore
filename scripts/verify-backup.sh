@@ -34,15 +34,15 @@ compose() {
 }
 
 cleanup() {
-  compose exec -T postgres rm -f "$DB_TMP" >/dev/null 2>&1 || true
-  compose exec -T api rm -f "$UPLOADS_TMP" >/dev/null 2>&1 || true
+  compose exec -T --user root postgres rm -f "$DB_TMP" >/dev/null 2>&1 || true
+  compose exec -T --user root api rm -f "$UPLOADS_TMP" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT INT TERM
 
 compose cp "$BACKUP_DIR/database.dump" "postgres:${DB_TMP}" >/dev/null
-compose exec -T postgres pg_restore --list "$DB_TMP" >/dev/null
+compose exec -T --user root postgres pg_restore --list "$DB_TMP" >/dev/null
 
 compose cp "$BACKUP_DIR/uploads.tar" "api:${UPLOADS_TMP}" >/dev/null
-compose exec -T api tar -tf "$UPLOADS_TMP" >/dev/null
+compose exec -T --user root api tar -tf "$UPLOADS_TMP" >/dev/null
 
 echo "Backup verification passed: $BACKUP_DIR"
