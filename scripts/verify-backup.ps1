@@ -62,14 +62,14 @@ $uploadsTemp = "/tmp/campuscore-verify-$PID-uploads.tar"
 
 try {
     Invoke-Compose -ComposeArgs @("cp", (Join-Path $BackupDirectory "database.dump"), "postgres:${databaseTemp}")
-    Invoke-Compose -ComposeArgs @("exec", "-T", "postgres", "pg_restore", "--list", $databaseTemp)
+    Invoke-Compose -ComposeArgs @("exec", "-T", "--user", "root", "postgres", "pg_restore", "--list", $databaseTemp)
 
     Invoke-Compose -ComposeArgs @("cp", (Join-Path $BackupDirectory "uploads.tar"), "api:${uploadsTemp}")
-    Invoke-Compose -ComposeArgs @("exec", "-T", "api", "tar", "-tf", $uploadsTemp)
+    Invoke-Compose -ComposeArgs @("exec", "-T", "--user", "root", "api", "tar", "-tf", $uploadsTemp)
 
     Write-Host "Backup verification passed: $BackupDirectory"
 }
 finally {
-    & docker compose -f $ComposeFile exec -T postgres rm -f $databaseTemp *> $null
-    & docker compose -f $ComposeFile exec -T api rm -f $uploadsTemp *> $null
+    & docker compose -f $ComposeFile exec -T --user root postgres rm -f $databaseTemp *> $null
+    & docker compose -f $ComposeFile exec -T --user root api rm -f $uploadsTemp *> $null
 }
