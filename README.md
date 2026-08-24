@@ -10,6 +10,8 @@
 
 **Made by the Sanskar**
 
+**Current prepared version:** `0.2.0` release candidate. The `v0.2.0` tag is intentionally not considered released until the required GitHub Actions gates are confirmed green. The root [`VERSION`](VERSION) file is the release version source of truth.
+
 ## Why CampusCore
 
 CampusCore centralizes student records, guardians, enrollment, staff, attendance, leave, marks, grades, report cards, timetables, announcements, reporting, audit history, institution settings, and bulk workflows without turning a school-management project into an unmaintainable monolith.
@@ -26,11 +28,12 @@ CampusCore centralizes student records, guardians, enrollment, staff, attendance
 - Institution settings and configurable grading rules
 - Responsive React/TypeScript web client with light/dark/system themes
 - PWA/offline shell, accessible navigation, loading/empty/error states, and printable report styling
-- Capacitor Android packaging with native-runtime safe areas and dedicated APK build verification
-- Manifest V3 CampusCore Companion preparation for Chromium browsers with storage-only permission
+- Capacitor Android packaging with native-runtime safe areas, lifecycle/back behavior, and dedicated APK build verification
+- Manifest V3 CampusCore Companion preparation for Chrome/Edge-compatible browsers with storage-only permission
 - PostgreSQL persistence with EF Core migrations and transaction-aware services
-- Structured logging, security headers, rate limiting, production configuration validation, health checks, and OpenAPI
-- Backup/restore scripts, migration integrity checks, deployment smoke tests, accessibility E2E tests, and bundle budgets
+- Structured logging, security headers, rate limiting, production configuration validation, liveness/readiness checks, and OpenAPI
+- Cross-platform backup/verification/restore scripts, recovery drills, migration integrity checks, deployment smoke tests, accessibility E2E tests, and bundle budgets
+- Repository-wide version consistency and tag/artifact verification for v0.2.0
 
 ## Supported platforms
 
@@ -90,7 +93,7 @@ npm run android:init
 npm run android:open
 ```
 
-After web changes, use `npm run android:sync`. The Android CI workflow regenerates the native project and assembles a debug APK from committed source. See [`docs/android.md`](docs/android.md) for emulator networking, CORS, release signing, and troubleshooting.
+After web changes, use `npm run android:sync`. Android CI derives its displayed build version from the root `VERSION` file, regenerates the native project, and assembles a debug APK from committed source. See [`docs/android.md`](docs/android.md) for emulator networking, CORS, release signing, and troubleshooting.
 
 ## Browser extension preparation
 
@@ -132,18 +135,27 @@ npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
+Version alignment:
+
+```bash
+node scripts/verify-version.mjs
+```
+
 See [`docs/testing.md`](docs/testing.md) for database integration, browser, and accessibility checks.
 
 ## Build and release
 
 ```bash
+node scripts/verify-version.mjs
 dotnet publish src/CampusCore.Api/CampusCore.Api.csproj -c Release -o artifacts/api
 cd src/CampusCore.Web
 npm install
 npm run build
 ```
 
-Tagged releases are built by `.github/workflows/release.yml`. See [`docs/release.md`](docs/release.md) and [`docs/deployment.md`](docs/deployment.md).
+Tagged releases are built by `.github/workflows/release.yml`, which rejects a tag that does not match `VERSION`. The prepared v0.2.0 candidate notes are in [`docs/releases/v0.2.0.md`](docs/releases/v0.2.0.md). See [`docs/release.md`](docs/release.md) and [`docs/deployment.md`](docs/deployment.md).
+
+The repository does not yet contain an npm lockfile, so Node automation intentionally uses `npm install`. Do not change clean/release jobs to `npm ci` until a reviewed lockfile is committed.
 
 ## Architecture
 
@@ -157,6 +169,7 @@ CampusCore is a modular monolith using Domain → Application → Infrastructure
 - File uploads are constrained by allow-list, size, and generated storage names.
 - Android production API targets and configured production CORS origins are HTTPS-only.
 - The browser companion currently requests only `storage` permission and does not inspect page content.
+- Production startup rejects known development/local secret placeholders and wildcard `AllowedHosts`.
 - See [`SECURITY.md`](SECURITY.md), [`PRIVACY.md`](PRIVACY.md), and [`THREAT_MODEL.md`](THREAT_MODEL.md).
 
 ## Contributing
