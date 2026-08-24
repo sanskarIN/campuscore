@@ -2,7 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="../CampusCore.Application/CampusCore.Application.csproj" />
     <ProjectReference Include="../CampusCore.Infrastructure/CampusCore.Infrastructure.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
   </ItemGroup>
 </Project>
