@@ -52,7 +52,7 @@ services:
       dockerfile: src/CampusCore.Web/Dockerfile
       args:
         VITE_API_BASE_URL: /
-        VITE_APP_VERSION: ${CAMPUSCORE_VERSION:-0.1.0}
+        VITE_APP_VERSION: ${CAMPUSCORE_VERSION:-0.2.0}
     restart: unless-stopped
     depends_on:
       api:
