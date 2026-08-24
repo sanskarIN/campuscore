@@ -33,6 +33,16 @@ public sealed class ProductionConfigurationValidatorTests
     }
 
     [TestMethod]
+    public void Validate_AllowsCorsToBeDisabledWithBlankEntries()
+    {
+        var values = ValidProductionValues();
+        values["Cors:Origins:0"] = string.Empty;
+        values["Cors:Origins:1"] = "   ";
+
+        ProductionConfigurationValidator.Validate(BuildConfiguration(values), isProduction: true);
+    }
+
+    [TestMethod]
     public void Validate_RejectsProductionHttpCorsOrigin()
     {
         var values = ValidProductionValues();
