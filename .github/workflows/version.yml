@@ -6,6 +6,8 @@ on:
     paths:
       - 'VERSION'
       - 'Directory.Build.props'
+      - 'CHANGELOG.md'
+      - 'docs/releases/**'
       - 'docker-compose.yml'
       - '.env.example'
       - 'src/CampusCore.Web/package.json'
@@ -19,6 +21,8 @@ on:
     paths:
       - 'VERSION'
       - 'Directory.Build.props'
+      - 'CHANGELOG.md'
+      - 'docs/releases/**'
       - 'docker-compose.yml'
       - '.env.example'
       - 'src/CampusCore.Web/package.json'
@@ -48,5 +52,5 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Verify aligned version
+      - name: Verify aligned version and release metadata
         run: node scripts/verify-version.mjs
