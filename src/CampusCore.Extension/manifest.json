@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "CampusCore Companion",
+  "description": "Quick, privacy-preserving access to CampusCore dashboard, search, students, and announcements.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "120",
+  "action": {
+    "default_title": "CampusCore",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "options_page": "options.html",
+  "permissions": [
+    "storage"
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+C"
+      },
+      "description": "Open CampusCore Companion"
+    }
+  }
+}
