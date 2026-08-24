@@ -31,7 +31,12 @@ builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 {
-    var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+    var origins = (builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
+        .Where(origin => !string.IsNullOrWhiteSpace(origin))
+        .Select(origin => origin.Trim())
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
+
     if (origins.Length > 0) policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
 }));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
