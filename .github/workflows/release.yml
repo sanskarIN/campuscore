@@ -54,6 +54,34 @@ jobs:
             -x 'README.md' \
             -x '*.DS_Store'
 
+      - name: Setup Java for Android verification
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Generate Android project from tagged source
+        working-directory: src/CampusCore.Web
+        env:
+          VITE_API_BASE_URL: https://api.example.test
+          VITE_APP_VERSION: ${{ github.ref_name }}
+        run: |
+          npm run build:android
+          npx cap add android
+          npx cap sync android
+
+      - name: Assemble Android verification APK
+        working-directory: src/CampusCore.Web/android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload Android verification APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: campuscore-android-verification-${{ github.ref_name }}
+          path: src/CampusCore.Web/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Create checksums
         working-directory: artifacts
         run: sha256sum *.tar.gz *.zip > SHA256SUMS.txt
