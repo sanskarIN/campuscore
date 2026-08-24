@@ -1,0 +1,17 @@
+# Default ownership for CampusCore changes.
+* @sanskarIN
+
+# Security-, release-, and deployment-sensitive surfaces.
+/.github/ @sanskarIN
+/src/CampusCore.Api/Auth/ @sanskarIN
+/src/CampusCore.Api/Configuration/ @sanskarIN
+/src/CampusCore.Infrastructure/Persistence/Migrations/ @sanskarIN
+/src/CampusCore.Web/capacitor.config.ts @sanskarIN
+/src/CampusCore.Extension/manifest.json @sanskarIN
+/scripts/ @sanskarIN
+/docker-compose.yml @sanskarIN
+/.env.example @sanskarIN
+/VERSION @sanskarIN
+/Directory.Build.props @sanskarIN
+/SECURITY.md @sanskarIN
+/THREAT_MODEL.md @sanskarIN
