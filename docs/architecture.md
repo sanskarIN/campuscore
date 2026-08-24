@@ -2,33 +2,43 @@
 
 ## Overview
 
-CampusCore is a modular monolith with a separately built React Web/PWA client. The design optimizes for a small maintainer team, explicit data ownership, auditable business operations, and straightforward deployment.
+CampusCore is a modular monolith with a separately built React Web/PWA client. The same React client is packaged for Android through Capacitor, while a separate minimal Manifest V3 companion provides browser shortcuts without duplicating authenticated application logic.
+
+The design optimizes for a small maintainer team, explicit data ownership, auditable business operations, least-privilege clients, and straightforward deployment.
 
 ```text
-Browser / installed PWA
-        |
-        | HTTPS / JSON
-        v
-CampusCore.Web (React + TypeScript)
-        |
-        v
-CampusCore.Api (ASP.NET Core minimal APIs)
-        |
-        v
-CampusCore.Application
-        |
-        +--------------------+
-        |                    |
-        v                    v
-CampusCore.Domain      abstractions/ports
-                             |
-                             v
-                    CampusCore.Infrastructure
-                             |
-                  +----------+-----------+
-                  |                      |
-                  v                      v
-              PostgreSQL           local file store
+Browser / installed PWA                 Android application
+        |                               (Capacitor native shell)
+        | HTTPS / JSON                         |
+        |                                      | HTTPS / JSON
+        v                                      v
+        +---------- CampusCore.Web (React + TypeScript) ----------+
+                                   |
+                                   v
+                    CampusCore.Api (ASP.NET Core minimal APIs)
+                                   |
+                                   v
+                    CampusCore.Application
+                                   |
+                       +-----------+-----------+
+                       |                       |
+                       v                       v
+              CampusCore.Domain       abstractions/ports
+                                               |
+                                               v
+                                  CampusCore.Infrastructure
+                                               |
+                                    +----------+-----------+
+                                    |                      |
+                                    v                      v
+                                PostgreSQL           local file store
+
+Chromium browser
+      |
+      v
+CampusCore.Extension (Manifest V3 navigation companion)
+      |
+      +---- opens configured CampusCore.Web routes
 ```
 
 ## Dependency rule
@@ -40,6 +50,8 @@ Dependencies point inward:
 3. `CampusCore.Infrastructure` implements persistence, Identity storage, auditing, file storage, and database initialization. It references application/domain contracts.
 4. `CampusCore.Api` composes the process, authentication/authorization, middleware, OpenAPI, rate limiting, and HTTP endpoints.
 5. `CampusCore.Web` is an independent HTTP client. It never imports backend assemblies or bypasses HTTP authorization.
+6. Capacitor packages `CampusCore.Web`; native-specific decisions are kept behind the `src/platform` boundary and configuration rather than reimplementing business workflows.
+7. `CampusCore.Extension` is a separate least-privilege navigation surface and does not become an alternate authentication/API client under the current design.
 
 ## Backend modules
 
@@ -118,6 +130,41 @@ The service worker caches only public application-shell resources. Requests unde
 
 The installed PWA can reopen its shell while offline, but authenticated operations require the API connection.
 
+Service-worker registration is disabled when Capacitor reports a native runtime; native packaging does not layer a browser PWA cache on top of bundled app assets.
+
+## Android architecture
+
+`src/CampusCore.Web/capacitor.config.ts` defines the stable Android application identity and native web directory. The Gradle/Android project is generated, not authoritative source.
+
+`src/platform/runtime.ts` is the cross-platform boundary for native detection. Android-specific presentation adjustments live in `native.css` rather than forking page components.
+
+Native networking follows these rules:
+
+- a native build must receive an explicit `VITE_API_BASE_URL`;
+- production native API targets must use HTTPS;
+- emulator-only HTTP can be enabled only for local hosts such as `10.0.2.2`;
+- Capacitor serves the native web application from `https://localhost`, so a separately hosted API must explicitly allow that CORS origin;
+- API authorization remains identical to browser authorization.
+
+The generated Android project can be deleted and recreated from committed source. Any future manual native customization that cannot be expressed through Capacitor config/plugins/scripts must be documented and reconsider the generated-project policy before it is introduced.
+
+## Browser companion architecture
+
+`src/CampusCore.Extension` is a Chromium Manifest V3 package. Its current purpose is fast navigation to a user-configured CampusCore web deployment.
+
+Current security boundary:
+
+- `storage` is the only requested permission;
+- no `host_permissions`;
+- no content scripts;
+- no browsing-history access;
+- no CampusCore token/password storage;
+- no direct CampusCore API calls.
+
+The configured CampusCore URL is normalized before navigation and deployed instances must use HTTPS. CI validates the manifest/permission policy before creating a ZIP artifact.
+
+If a future feature requires page/API access, that is an architectural and privacy change, not a routine UI enhancement. It requires explicit permission review, threat-model updates, validation changes, and store-disclosure review.
+
 ## Deployment topology
 
 The included Compose topology is:
@@ -128,19 +175,29 @@ The included Compose topology is:
                                      +-> /data/uploads persistent volume
 ```
 
-This gives the browser a same-origin API in the container deployment, allowing a restrictive web Content Security Policy and avoiding deployment-specific CORS exposure.
+This gives the browser a same-origin API in the container deployment, allowing a restrictive web Content Security Policy and avoiding deployment-specific CORS exposure for the containerized Web/PWA.
+
+Android is different when it calls the API directly:
+
+```text
+Android / https://localhost -> public HTTPS API -> PostgreSQL / storage
+```
+
+The API therefore accepts explicitly configured CORS origins. Production configuration validation rejects unsafe HTTP/path-bearing CORS values.
 
 For local hot reload, run PostgreSQL in Compose and start API/Web directly on ports `5080` and `5173`.
 
 ## Security boundaries
 
-- The browser is untrusted input.
+- Browser/native client input is untrusted.
 - Role visibility in React is not authorization.
 - JWT signing keys and bootstrap keys are deployment secrets.
-- The database is not directly exposed to the web client.
+- Android signing material is a deployment secret and never belongs in Git.
+- The database is not directly exposed to any client.
 - Uploaded files are untrusted and pass API validation before storage.
 - Audit metadata must not become a secondary PII store.
 - Service-worker cache must never expand to authenticated API responses without a separate privacy design review.
+- Browser-extension permissions must remain least-privilege and CI-enforced.
 
 See `SECURITY.md`, `PRIVACY.md`, `THREAT_MODEL.md`, and the ADRs under `docs/adr/`.
 
@@ -148,7 +205,7 @@ See `SECURITY.md`, `PRIVACY.md`, `THREAT_MODEL.md`, and the ADRs under `docs/adr
 
 ### Error handling
 
-The API returns safe problem responses and logs server-side diagnostic context. The Web/PWA renders loading, empty, success, offline, validation, and failure states without exposing stack traces.
+The API returns safe problem responses and logs server-side diagnostic context. Web/Android clients render loading, empty, success, offline, validation, and failure states without exposing stack traces.
 
 ### Observability
 
@@ -156,11 +213,11 @@ Structured application logs, correlation/request identifiers, health checks, and
 
 ### Accessibility
 
-Semantic HTML, label association, focus visibility, skip navigation, keyboard-reachable actions, responsive layout, reduced-motion handling, and printable report semantics are baseline requirements. See `docs/accessibility.md`.
+Semantic HTML, label association, focus visibility, skip navigation, keyboard-reachable actions, responsive layout, reduced-motion handling, and printable report semantics are baseline requirements. Android reuse of the web UI does not waive accessibility requirements. The extension settings/popup likewise need keyboard/focus/contrast review. See `docs/accessibility.md`.
 
 ### Performance
 
-The architecture favors server-side filtering/pagination, lean JSON contracts, static PWA assets, and narrow page-level data requests. See `docs/performance.md`.
+The architecture favors server-side filtering/pagination, lean JSON contracts, static PWA assets, and narrow page-level data requests. Native packaging reuses those assets rather than maintaining a second UI bundle. See `docs/performance.md`.
 
 ## Adding a module
 
@@ -172,7 +229,9 @@ A new business capability should normally be implemented in this order:
 4. add migration for persistence changes;
 5. expose explicitly authorized API endpoints;
 6. add Web/PWA workflow and state handling;
-7. add unit/integration/UI tests;
-8. document security, migration, accessibility, and operational impact.
+7. verify shared Android behavior when the UI/API change affects native use;
+8. add extension navigation only when it provides genuine value without duplicating the feature;
+9. add unit/integration/UI/native-relevant tests;
+10. document security, migration, accessibility, and operational impact.
 
 Avoid creating a new architectural layer solely to increase abstraction count. Prefer a coherent module with clear boundaries.
