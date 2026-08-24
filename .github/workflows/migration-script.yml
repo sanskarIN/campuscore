@@ -63,7 +63,7 @@ jobs:
           grep -q '__EFMigrationsHistory' artifacts/migrations.sql
 
       - name: Upload migration SQL
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: campuscore-migrations-${{ github.sha }}
           path: artifacts/migrations.sql
