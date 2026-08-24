@@ -3,8 +3,11 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './auth/AuthContext';
+import { isNativeRuntime, markRuntimeOnDocument } from './platform/runtime';
 import { ThemeProvider } from './theme/ThemeContext';
 import './styles.css';
+
+markRuntimeOnDocument();
 
 const root = document.getElementById('root');
 if (!root) throw new Error('CampusCore root element was not found.');
@@ -21,7 +24,7 @@ createRoot(root).render(
   </StrictMode>,
 );
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+if ('serviceWorker' in navigator && import.meta.env.PROD && !isNativeRuntime()) {
   window.addEventListener('load', () => {
     void navigator.serviceWorker.register('/sw.js').catch(() => {
       // The web app remains fully functional without service-worker support.
