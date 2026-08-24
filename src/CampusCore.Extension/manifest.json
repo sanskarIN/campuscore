@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "CampusCore Companion",
   "description": "Quick, privacy-preserving access to CampusCore dashboard, search, students, and announcements.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "minimum_chrome_version": "120",
   "action": {
     "default_title": "CampusCore",
