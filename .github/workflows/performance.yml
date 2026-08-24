@@ -4,11 +4,13 @@ on:
   push:
     branches: [main]
     paths:
+      - 'VERSION'
       - 'src/CampusCore.Web/**'
       - '.github/workflows/performance.yml'
   pull_request:
     branches: [main]
     paths:
+      - 'VERSION'
       - 'src/CampusCore.Web/**'
       - '.github/workflows/performance.yml'
 
@@ -21,7 +23,7 @@ concurrency:
 
 jobs:
   bundle-budget:
-    name: Web bundle budget
+    name: Web release bundle safety and budget
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -38,8 +40,14 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Build production bundle
-        run: npm run build
+      - name: Build production release bundle
+        shell: bash
+        run: |
+          version="$(cat ../../VERSION)"
+          VITE_API_BASE_URL=/ VITE_APP_VERSION="$version" npm run build
 
       - name: Enforce bundle budget
         run: npm run budget
+
+      - name: Verify release deployment safety
+        run: npm run verify:release
