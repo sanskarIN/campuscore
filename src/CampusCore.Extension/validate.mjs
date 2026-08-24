@@ -5,8 +5,11 @@ import { buildCampusCoreRoute, normalizeCampusCoreUrl } from './url.js';
 
 const root = process.cwd();
 const manifest = JSON.parse(readFileSync(resolve(root, 'manifest.json'), 'utf8'));
+const packageMetadata = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
 
 assert.equal(manifest.manifest_version, 3, 'Extension must use Manifest V3.');
+assert.equal(manifest.version, packageMetadata.version, 'Extension manifest and package versions must match.');
+assert.match(manifest.version, /^\d+(?:\.\d+){0,3}$/u, 'Extension version must use Chrome numeric version syntax.');
 assert.deepEqual(manifest.permissions ?? [], ['storage'], 'Extension permissions must remain storage-only.');
 assert.equal('host_permissions' in manifest, false, 'Host permissions are intentionally forbidden.');
 assert.equal('content_scripts' in manifest, false, 'Content scripts are intentionally forbidden.');
@@ -28,4 +31,4 @@ assert.throws(() => normalizeCampusCoreUrl('http://campus.example.edu'), /Use HT
 assert.throws(() => normalizeCampusCoreUrl('https://user:pass@campus.example.edu'), /credentials/u);
 assert.throws(() => normalizeCampusCoreUrl('https://campus.example.edu?token=secret'), /query/u);
 
-console.log('CampusCore Companion manifest and URL policy validated.');
+console.log(`CampusCore Companion ${manifest.version} manifest and URL policy validated.`);
