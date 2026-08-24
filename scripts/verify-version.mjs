@@ -9,6 +9,8 @@ const version = read('VERSION').trim();
 
 assert.match(version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u, 'VERSION must contain a semantic version.');
 
+const coreVersion = version.split('-', 1)[0];
+const assemblyVersion = `${coreVersion}.0`;
 const directoryProps = read('Directory.Build.props');
 const webPackage = JSON.parse(read('src/CampusCore.Web/package.json'));
 const extensionPackage = JSON.parse(read('src/CampusCore.Extension/package.json'));
@@ -18,6 +20,8 @@ const compose = read('docker-compose.yml');
 const envExample = read('.env.example');
 
 const dotnetVersion = directoryProps.match(/<CampusCoreVersion>([^<]+)<\/CampusCoreVersion>/u)?.[1];
+const dotnetAssemblyVersion = directoryProps.match(/<AssemblyVersion>([^<]+)<\/AssemblyVersion>/u)?.[1];
+const dotnetFileVersion = directoryProps.match(/<FileVersion>([^<]+)<\/FileVersion>/u)?.[1];
 const webFallback = webEnvironment.match(/version:\s*import\.meta\.env\.VITE_APP_VERSION\?\.trim\(\)\s*\|\|\s*'([^']+)'/u)?.[1];
 const composeVersion = compose.match(/VITE_APP_VERSION:\s*\$\{CAMPUSCORE_VERSION:-([^}]+)\}/u)?.[1];
 const exampleVersion = envExample.match(/^CAMPUSCORE_VERSION=(.+)$/mu)?.[1]?.trim();
@@ -36,6 +40,10 @@ for (const [name, actual] of components) {
   assert.ok(actual, `${name} version could not be resolved.`);
   assert.equal(actual, version, `${name} version ${actual} does not match VERSION ${version}.`);
 }
+
+assert.equal(dotnetAssemblyVersion, assemblyVersion, `AssemblyVersion ${dotnetAssemblyVersion} must equal ${assemblyVersion}.`);
+assert.equal(dotnetFileVersion, assemblyVersion, `FileVersion ${dotnetFileVersion} must equal ${assemblyVersion}.`);
+assert.match(extensionManifest.version, /^\d+(?:\.\d+){0,3}$/u, 'Browser extension manifest version must use Chrome numeric version syntax.');
 
 const tagIndex = process.argv.indexOf('--tag');
 if (tagIndex >= 0) {
