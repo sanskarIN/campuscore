@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const envFiles = ['.env', '.env.local', '.env.android', '.env.android.local'];
-const values = { ...process.env };
+const fileValues = {};
 
 for (const file of envFiles) {
   const path = resolve(process.cwd(), file);
@@ -16,17 +16,16 @@ for (const file of envFiles) {
     if (separator <= 0) continue;
 
     const key = line.slice(0, separator).trim();
-    if (values[key]) continue;
-
     let value = line.slice(separator + 1).trim();
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
     }
 
-    values[key] = value;
+    fileValues[key] = value;
   }
 }
 
+const values = { ...fileValues, ...process.env };
 const apiBaseUrl = values.VITE_API_BASE_URL?.trim();
 if (!apiBaseUrl) {
   console.error('Android builds require VITE_API_BASE_URL. Copy .env.android.example to .env.android and point it at the deployed API.');
