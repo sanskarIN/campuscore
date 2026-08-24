@@ -22,12 +22,18 @@ src/
   CampusCore.Application/     use cases, DTOs, service abstractions
   CampusCore.Infrastructure/  EF Core, Identity, storage, audit implementations
   CampusCore.Api/             HTTP host, auth, middleware, endpoints
-  CampusCore.Web/             React/TypeScript Web/PWA
+  CampusCore.Web/             React/TypeScript Web/PWA + Capacitor source
+  CampusCore.Extension/       minimal Manifest V3 browser companion
 tests/
   CampusCore.Domain.Tests/    domain unit tests
+  CampusCore.Application.Tests/
+  CampusCore.Infrastructure.Tests/
+  CampusCore.Api.Tests/
 docs/                         maintainer and operator documentation
-.github/                      CI, CodeQL, release, Dependabot and templates
+.github/                      CI, Android/extension checks, CodeQL, release, Dependabot and templates
 ```
+
+The generated `src/CampusCore.Web/android/` tree is intentionally ignored. Reproducible native behavior belongs in web source, Capacitor configuration, plugins, scripts, or documented Gradle customization that can be recreated safely.
 
 ## Backend workflow
 
@@ -105,16 +111,20 @@ Never edit an already released migration merely to make history look cleaner. Ad
 ```text
 src/CampusCore.Web/
   public/                manifest, service worker, editable logo
+  scripts/               build/budget/native validation scripts
   src/
     api/                 authenticated fetch abstraction
     auth/                browser session context/storage
     components/          reusable product components
     hooks/               focused React hooks
     pages/               route-level workflows
+    platform/            web/native runtime boundary
     theme/               appearance preference
     App.tsx              routes and role guards
-    main.tsx             browser bootstrap
-    styles.css           design tokens and responsive styles
+    main.tsx             browser/native bootstrap
+    styles.css           shared design tokens and responsive styles
+    native.css           native safe-area/touch adjustments
+  capacitor.config.ts    reproducible native application identity/config
 ```
 
 ### API calls
@@ -181,6 +191,50 @@ Do not cache `/api/*` under the existing architecture.
 
 When changing precached shell files, increment `CACHE_NAME` so obsolete caches are removed on activation.
 
+## Android changes
+
+Android reuses the web client through Capacitor. Read `docs/android.md` before changing native behavior.
+
+Rules:
+
+- Keep `capacitor.config.ts` and direct Capacitor versions committed and pinned.
+- Keep generated `android/` output out of Git.
+- Keep production API targets HTTPS-only.
+- Preserve `https://localhost` in the deployed API CORS configuration for the native webview.
+- Do not register the PWA service worker inside a native runtime.
+- Put cross-platform behavior behind `src/platform/` rather than scattering Capacitor checks through feature pages.
+- Never commit a signing keystore or signing password.
+
+For a local native verification with a safe test origin:
+
+```bash
+cd src/CampusCore.Web
+VITE_API_BASE_URL=https://api.example.test npm run build:android
+npx cap add android
+npx cap sync android
+```
+
+Use `npm run android:sync` once a generated Android project already exists.
+
+## Browser companion changes
+
+The current extension is intentionally navigation-only and least-privilege. `src/CampusCore.Extension/validate.mjs` enforces its security boundary.
+
+Before adding a permission, content script, host permission, or API call:
+
+1. document the exact user-facing feature that requires it;
+2. confirm the feature cannot be implemented through normal CampusCore navigation;
+3. update the threat/privacy documentation;
+4. add validation/tests that constrain the new permission to the minimum required scope;
+5. review Chrome/Edge store policy implications.
+
+Validate the extension with:
+
+```bash
+cd src/CampusCore.Extension
+npm run check
+```
+
 ## Formatting and checks
 
 Backend:
@@ -203,6 +257,20 @@ npm run test
 npm run build
 ```
 
+Android web/native source:
+
+```bash
+cd src/CampusCore.Web
+VITE_API_BASE_URL=https://api.example.test npm run build:android
+```
+
+Browser companion:
+
+```bash
+cd src/CampusCore.Extension
+npm run check
+```
+
 Full container configuration:
 
 ```bash
@@ -212,12 +280,13 @@ docker compose config --quiet
 ## Dependency changes
 
 - Use maintained stable releases compatible with the project's runtime targets.
-- Pin direct web dependencies in `package.json`.
+- Pin direct web/native dependencies in `package.json`.
 - Review transitive vulnerability output before merging.
 - Keep GitHub Actions on supported major versions and allow Dependabot to propose updates.
 - Do not update dependencies solely for version-number freshness when the new version breaks runtime support.
+- Keep Android and Capacitor package majors aligned unless the upstream compatibility matrix explicitly supports another combination.
 
-A trustworthy npm lockfile should be generated/updated by `npm install` from a networked clean checkout and committed alongside dependency changes.
+The web package currently has no committed npm lockfile, so clean automation uses `npm install`. A future lockfile must be generated by a networked clean checkout, reviewed, committed with the dependency graph it represents, and then CI/release commands should move to `npm ci`.
 
 ## Logging and diagnostics
 
@@ -239,6 +308,8 @@ A change is ready when:
 - clean restore/build succeeds;
 - relevant tests pass;
 - lint/type checks pass for web changes;
+- Android build validation passes for native-impacting web changes;
+- extension validation/package checks pass for browser-companion changes;
 - no high-severity dependency audit failures remain unresolved;
 - role/authorization behavior was reviewed;
 - database migrations are present when required;
