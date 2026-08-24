@@ -24,6 +24,39 @@ public sealed class ProductionConfigurationValidatorTests
     }
 
     [TestMethod]
+    public void Validate_AcceptsCapacitorHttpsLocalhostOrigin()
+    {
+        var values = ValidProductionValues();
+        values["Cors:Origins:0"] = "https://localhost";
+
+        ProductionConfigurationValidator.Validate(BuildConfiguration(values), isProduction: true);
+    }
+
+    [TestMethod]
+    public void Validate_RejectsProductionHttpCorsOrigin()
+    {
+        var values = ValidProductionValues();
+        values["Cors:Origins:0"] = "http://campus.example.edu";
+
+        var exception = Assert.ThrowsExactly<InvalidOperationException>(() =>
+            ProductionConfigurationValidator.Validate(BuildConfiguration(values), isProduction: true));
+
+        StringAssert.Contains(exception.Message, "Cors:Origins");
+    }
+
+    [TestMethod]
+    public void Validate_RejectsProductionCorsOriginWithPath()
+    {
+        var values = ValidProductionValues();
+        values["Cors:Origins:0"] = "https://campus.example.edu/app";
+
+        var exception = Assert.ThrowsExactly<InvalidOperationException>(() =>
+            ProductionConfigurationValidator.Validate(BuildConfiguration(values), isProduction: true));
+
+        StringAssert.Contains(exception.Message, "Cors:Origins");
+    }
+
+    [TestMethod]
     public void Validate_RejectsDevelopmentJwtKey()
     {
         var values = ValidProductionValues();
@@ -85,7 +118,8 @@ public sealed class ProductionConfigurationValidatorTests
         ["Jwt:Key"] = "A-production-jwt-key-with-more-than-thirty-two-characters",
         ["ConnectionStrings:Database"] = "Host=db;Database=campuscore;Username=campuscore;Password=a-strong-production-password",
         ["AllowedHosts"] = "campus.example.edu",
-        ["BootstrapAdmin:Key"] = "A-production-bootstrap-key"
+        ["BootstrapAdmin:Key"] = "A-production-bootstrap-key",
+        ["Cors:Origins:0"] = "https://campus.example.edu"
     };
 
     private static IConfiguration BuildConfiguration(Dictionary<string, string?> values) =>
