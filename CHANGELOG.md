@@ -18,10 +18,13 @@ All notable changes are documented here. The project follows Keep a Changelog co
 - Responsive React/TypeScript Web/PWA client with dashboard, search, student, academic, operations, staff, announcements, academic-catalog, settings/audit, and About surfaces.
 - Light/dark/system theming, PWA/offline shell behavior, printable reports, loading/empty/error states, and keyboard-accessible navigation.
 - Deterministic browser E2E coverage for authentication, authorization, primary routes, offline behavior, keyboard journeys, and axe-powered WCAG A/AA smoke checks.
+- Disposable real-stack Chromium release smoke covering first-run administrator bootstrap, student/guardian persistence, academic catalog setup, enrollment, attendance, marks, report-card rendering, announcements, settings/audit, sign-out, and protected-route enforcement against PostgreSQL/API/Web containers.
+- Strict TypeScript and ESLint coverage for both mocked and real-stack Playwright suites.
 - Database-backed `/readyz` readiness alongside process-only `/healthz` liveness.
 - Cross-platform PostgreSQL + attachment backup, checksum verification, guarded restore tooling, and automated disaster-recovery round-trip CI.
 - Migration integrity/idempotence CI plus generated idempotent migration SQL artifacts.
 - Production deployment smoke testing, web bundle budgets, CodeQL/dependency automation, and release artifact/checksum workflow.
+- Production Web artifact safety verification that rejects known local/development deployment markers before packaging.
 - Production configuration validation that rejects known local/development secrets and wildcard production host filtering.
 - Capacitor 8 Android packaging using the shared React/Vite client, native runtime detection, Android safe-area behavior, lifecycle/back handling, explicit native API targeting, and Android debug-APK CI verification.
 - Chromium Manifest V3 CampusCore Companion preparation with storage-only permission, configurable CampusCore URL, route shortcuts, options UI, policy validation, and packaging CI.
@@ -33,16 +36,18 @@ All notable changes are documented here. The project follows Keep a Changelog co
 - Web/PWA, Android CI, Docker Compose, environment samples, extension metadata, and .NET assemblies are aligned to version `0.2.0`.
 - The API root endpoint reports its compiled assembly version instead of a hard-coded application version.
 - Tagged releases now require the Git tag to match the repository version and include `VERSION` plus reviewable migration SQL alongside API/Web/companion archives and SHA-256 checksums.
+- Tagged Web/PWA archives are built with same-origin API routing and verified for release-safe deployment markers before packaging.
 - Android production builds require an explicit HTTPS API origin; constrained cleartext usage remains limited to local/emulator development scenarios.
 - PWA service-worker registration is disabled inside native Capacitor shells.
-- Setup/build/release documentation uses the actual `src/CampusCore.Web` and `src/CampusCore.Extension` paths and the repository-local EF tool manifest.
+- Setup/build/release/testing documentation uses the actual `src/CampusCore.Web` and `src/CampusCore.Extension` paths and the repository-local EF tool manifest.
 
 ### Security
 - Production CORS origins are validated as HTTPS origins without credentials, application paths, queries, or fragments.
-- Browser companion validation rejects host permissions and content scripts to preserve its least-privilege navigation-only boundary.
+- Production deployment smoke uses explicit HTTPS CORS origins so the smoke environment exercises the same fail-closed validation as a real Production deployment.
+- Browser companion validation rejects host permissions and content scripts to preserve its least-privilege navigation-only boundary and verifies package/manifest version alignment.
 - Production startup rejects known development/local database and signing-key placeholders and requires explicit `AllowedHosts`.
 - Attachment restore operations preserve non-root runtime ownership after controlled recovery operations.
-- Backup outputs are excluded from Git and documented as sensitive records requiring encrypted/restricted storage.
+- Backup outputs and Playwright reports are excluded from Git and documented as generated/sensitive operational data where applicable.
 
 ### Known release-candidate limitations
 - No npm lockfile is committed yet; Node workflows intentionally use `npm install` until a reviewed lockfile can be generated and committed.
