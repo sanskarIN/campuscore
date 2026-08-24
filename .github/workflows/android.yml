@@ -4,11 +4,13 @@ on:
   push:
     branches: [main]
     paths:
+      - 'VERSION'
       - 'src/CampusCore.Web/**'
       - '.github/workflows/android.yml'
   pull_request:
     branches: [main]
     paths:
+      - 'VERSION'
       - 'src/CampusCore.Web/**'
       - '.github/workflows/android.yml'
 
@@ -29,10 +31,13 @@ jobs:
         working-directory: src/CampusCore.Web
     env:
       VITE_API_BASE_URL: https://api.example.test
-      VITE_APP_VERSION: 0.1.0-ci
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      - name: Load CampusCore version
+        shell: bash
+        run: echo "VITE_APP_VERSION=$(cat ../../VERSION)-ci" >> "$GITHUB_ENV"
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -64,7 +69,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v6
         with:
-          name: campuscore-android-debug
+          name: campuscore-android-debug-${{ github.sha }}
           path: src/CampusCore.Web/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
