@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Threading.RateLimiting;
 using CampusCore.Api.Auth;
@@ -62,6 +63,7 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
+var appVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "unknown";
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.Use(async (context, next) =>
 {
@@ -79,7 +81,7 @@ app.UseAuthorization();
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
 app.MapHealthChecks("/healthz", new HealthCheckOptions { Predicate = _ => false });
 app.MapHealthChecks("/readyz", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
-app.MapGet("/", () => Results.Ok(new { name = "CampusCore API", version = "0.1.0", credit = "Made by the Sanskar" }));
+app.MapGet("/", () => Results.Ok(new { name = "CampusCore API", version = appVersion, credit = "Made by the Sanskar" }));
 app.MapAuthEndpoints();
 app.MapStudentEndpoints();
 app.MapAcademicEndpoints();
