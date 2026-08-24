@@ -21,7 +21,9 @@ CampusCore is currently preparing **v0.2.0**. A root `VERSION` file is the relea
 - [x] Light/dark/system themes and printable report styling.
 - [x] PWA/offline shell with authenticated API data excluded from service-worker caching.
 - [x] Keyboard-focused navigation and automated WCAG A/AA browser smoke checks.
-- [x] Browser E2E coverage and enforceable bundle budgets.
+- [x] Deterministic mocked browser E2E coverage and enforceable bundle budgets.
+- [x] Disposable real-stack browser release smoke covering authentication, student/guardian persistence, academic operations, report-card rendering, announcements, settings/audit, and sign-out.
+- [x] Strict TypeScript/ESLint validation for mocked and real-stack browser suites.
 
 ### Operations and security hardening
 - [x] Separate liveness (`/healthz`) and database-backed readiness (`/readyz`).
@@ -30,6 +32,7 @@ CampusCore is currently preparing **v0.2.0**. A root `VERSION` file is the relea
 - [x] Cross-platform backup, verification, and guarded restore scripts.
 - [x] Automated backup/restore drill and deployment smoke testing.
 - [x] Clean/idempotent migration CI and generated migration SQL artifacts.
+- [x] Production Web artifact verification for same-origin API routing and rejection of local/development deployment markers.
 - [x] Deployment, backup/restore, testing, release, security, privacy, and development documentation.
 
 ### Android and browser companion
@@ -37,23 +40,24 @@ CampusCore is currently preparing **v0.2.0**. A root `VERSION` file is the relea
 - [x] Native runtime detection, safe-area behavior, explicit Android API targeting, and lifecycle/back handling.
 - [x] Reproducible Android project regeneration and debug APK verification in CI.
 - [x] Chromium Manifest V3 CampusCore Companion with storage-only permission.
-- [x] Companion route shortcuts, settings UI, URL policy validation, and packaging CI.
+- [x] Companion route shortcuts, settings UI, URL policy validation, version-alignment validation, and packaging CI.
 
 ### v0.2.0 release preparation
 - [x] Repository-wide `VERSION` source set to `0.2.0`.
 - [x] .NET, Web/PWA, Compose, environment sample, and extension versions aligned.
-- [x] Automated version-consistency workflow.
+- [x] Automated version-consistency workflow including .NET assembly/file versions and browser-manifest syntax.
 - [x] Release workflow rejects mismatched tags and components.
 - [x] Release workflow packages migration SQL, version manifest, checksums, API, Web/PWA, and companion artifacts.
-- [x] v0.2.0 release-candidate changelog and release notes prepared.
+- [x] Tagged Web/PWA archive uses same-origin API routing and passes a release-asset safety check before packaging.
+- [x] v0.2.0 release-candidate changelog, testing documentation, and release notes prepared.
 
 ## Remaining blockers before tag v0.2.0
 
-- [ ] Confirm the complete required GitHub Actions set is green for the final candidate commit.
-- [ ] Fix any failures surfaced by the expanded E2E, accessibility, migration, recovery, deployment, Android, extension, performance, or version gates.
+- [ ] Confirm the complete required GitHub Actions set is green for the final candidate commit, including the newly added real full-stack browser workflow.
+- [ ] Fix any failures surfaced by E2E, accessibility, migration, recovery, deployment, Android, extension, performance, version, or release-asset gates.
 - [ ] Generate and review npm lockfiles when registry access is available, then move Node clean/release installs to `npm ci`.
 - [ ] Capture representative release screenshots from a verified deployed candidate if screenshots are part of the v0.2.0 release requirement.
-- [ ] Perform a final secrets/permissions/configuration review before creating the tag.
+- [ ] Perform the final secrets, permissions, workflow, and production-configuration review before creating the tag.
 
 ## v0.3.0 — Distribution readiness
 
