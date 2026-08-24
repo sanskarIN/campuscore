@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:android": "node scripts/validate-android-env.mjs && tsc -b && vite build",
+    "build:android": "node scripts/validate-android-env.mjs && tsc -b && vite build --mode android",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint . --max-warnings 0",
