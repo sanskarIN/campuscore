@@ -7,6 +7,9 @@ CampusCore uses layered verification so failures are caught as close to their so
 Run these checks before opening or merging a pull request:
 
 ```bash
+node scripts/verify-version.mjs
+
+dotnet tool restore
 dotnet restore CampusCore.sln
 dotnet format CampusCore.sln --verify-no-changes
 dotnet build CampusCore.sln --configuration Release --no-restore
@@ -15,6 +18,15 @@ dotnet test CampusCore.sln --configuration Release --no-build
 cd src/CampusCore.Web
 npm install
 npm run check
+```
+
+To verify the same-origin production Web artifact shape used by releases:
+
+```bash
+cd src/CampusCore.Web
+version="$(cat ../../VERSION)"
+VITE_API_BASE_URL=/ VITE_APP_VERSION="$version" npm run build
+npm run verify:release
 ```
 
 For Android-impacting web/native changes:
@@ -100,9 +112,13 @@ Behavior-oriented coverage should include:
 
 ### Browser end-to-end and accessibility tests
 
+CampusCore now has two intentionally different Playwright suites.
+
+#### Deterministic mocked suite
+
 Location: `src/CampusCore.Web/e2e`
 
-Playwright covers high-value browser journeys. `@axe-core/playwright` adds automated accessibility checks, but automation does not replace keyboard, zoom, contrast, screen-reader, and responsive manual review.
+This suite controls API routes so UI/auth/authorization/accessibility regressions are deterministic and fast. It covers authentication routing, role boundaries, primary module rendering, offline shell behavior, keyboard navigation, and axe-powered WCAG A/AA smoke checks.
 
 Run locally after installing Chromium:
 
@@ -112,29 +128,55 @@ npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-The current E2E suite uses controlled route mocks for deterministic shell/module coverage. Release-candidate validation should additionally exercise a disposable full stack for business-critical journeys.
+#### Real full-stack release smoke
 
-Minimum full-stack release-candidate journeys:
+Location: `src/CampusCore.Web/fullstack`
 
-1. administrator signs in and reaches the dashboard;
-2. administrator creates a student and primary guardian;
-3. administrator enrolls the student into a section;
-4. authorized staff records attendance and marks;
-5. authorized user views a report card;
-6. administrator publishes an announcement;
-7. administrator changes institution settings and verifies audit history;
-8. user signs out and protected routes become inaccessible.
+Configuration: `src/CampusCore.Web/playwright.fullstack.config.ts`
+
+Workflow: `.github/workflows/fullstack-e2e.yml`
+
+The workflow starts a completely disposable Docker Compose stack with a fresh PostgreSQL volume, runs Chromium against the real Nginx/Web/API stack, and destroys all volumes afterward.
+
+The current real-stack journey exercises:
+
+1. first-run administrator bootstrap through the real authentication UI;
+2. student creation through the Web UI;
+3. primary guardian persistence through the authenticated API where no guardian-creation UI exists yet;
+4. academic year, class, section, and subject setup through authenticated API setup calls;
+5. student enrollment through the real Operations UI;
+6. attendance and mark recording through the real Academics UI;
+7. report-card generation/rendering through the real Operations UI;
+8. announcement publication through the real Web UI;
+9. institution settings persistence and audit-event verification;
+10. sign-out and restoration of the protected-route boundary.
+
+Run against an already-running disposable stack:
+
+```bash
+cd src/CampusCore.Web
+CAMPUSCORE_E2E_BASE_URL=http://127.0.0.1:8081 \
+CAMPUSCORE_E2E_BOOTSTRAP_KEY=campuscore-fullstack-bootstrap-key-2026 \
+npm run test:e2e:fullstack
+```
+
+Never point this destructive first-run suite at a shared, staging, or production database. It assumes an empty database and creates fictional records.
+
+Both `e2e` and `fullstack` are part of the strict TypeScript project graph through `tsconfig.e2e.json`, and both are linted by the normal Web quality gate.
+
+Automated accessibility does not replace keyboard, zoom, contrast, screen-reader, responsive, and touch-device manual review.
 
 ## Android verification
 
 `.github/workflows/android.yml` performs a stronger native reproducibility check than `build:android` alone:
 
-1. install pinned web/Capacitor dependencies;
-2. validate and build Android-mode web assets;
-3. generate the Android platform from `capacitor.config.ts`;
-4. synchronize Capacitor assets/plugins;
-5. run Gradle `assembleDebug`;
-6. upload the resulting debug APK.
+1. load the application version from the root `VERSION` file;
+2. install pinned web/Capacitor dependencies;
+3. validate and build Android-mode web assets;
+4. generate the Android platform from `capacitor.config.ts`;
+5. synchronize Capacitor assets/plugins;
+6. run Gradle `assembleDebug`;
+7. upload the resulting debug APK.
 
 For release candidates, CI assembly is not enough. Install the candidate on representative physical devices/emulators and verify:
 
@@ -145,7 +187,7 @@ For release candidates, CI assembly is not enough. Install the candidate on repr
 - portrait layouts across small and large Android screens;
 - keyboard/form behavior;
 - offline/error recovery;
-- system back/navigation behavior;
+- system back/navigation and lifecycle behavior;
 - external-link handling;
 - upgrade behavior from the previous supported app version.
 
@@ -153,7 +195,7 @@ Signed release/AAB validation remains a separate release gate because signing cr
 
 ## Browser companion verification
 
-`src/CampusCore.Extension/validate.mjs` enforces the current least-privilege contract. CI fails when the package gains host permissions/content scripts, references missing manifest files, leaves Manifest V3, or weakens URL rules without corresponding validator changes.
+`src/CampusCore.Extension/validate.mjs` enforces the current least-privilege contract. CI fails when the package gains host permissions/content scripts, references missing manifest files, leaves Manifest V3, weakens URL rules without corresponding validator changes, or lets package/manifest versions drift.
 
 Before store publication, also test unpacked packages in supported Chrome and Edge versions and review:
 
@@ -169,6 +211,12 @@ Before store publication, also test unpacked packages in supported Chrome and Ed
 ## Database and migration verification
 
 A release candidate must prove both clean installation and upgrade safety.
+
+Restore the repository-local EF tool first:
+
+```bash
+dotnet tool restore
+```
 
 For a clean database:
 
@@ -187,7 +235,9 @@ dotnet ef migrations script --idempotent \
   --output artifacts/migrations.sql
 ```
 
-The CI migration job also compares committed migration count with `__EFMigrationsHistory` and verifies startup migration idempotence.
+The CI migration job compares committed migration count with `__EFMigrationsHistory`, verifies startup migration idempotence, and the migration-script workflow uploads reviewable SQL.
+
+As soon as multiple released database versions exist, add explicit previous-release database upgrade tests. Clean-database verification alone cannot prove upgrade compatibility.
 
 Never edit a previously released migration to change production history. Add a new migration instead.
 
@@ -196,6 +246,14 @@ Never edit a previously released migration to change production history. Add a n
 The recovery CI job creates a database/upload marker, produces a backup, mutates live state, restores the backup, and checks that the pre-backup state returns. This is a regression guard for the repository scripts, not a substitute for operator rehearsals with production-equivalent volume and storage.
 
 Read `docs/backup-restore.md` before a production restore.
+
+## Deployment and release-asset verification
+
+The production deployment smoke workflow starts CampusCore with `ASPNETCORE_ENVIRONMENT=Production`, explicit non-placeholder secrets/hosts, and HTTPS-only CORS test origins. It verifies API/Web liveness/readiness and non-root application users.
+
+The Web release-asset verifier fails if non-source-map release assets contain known local/development deployment markers such as the local API origin.
+
+The version-consistency workflow validates the root `VERSION` value across .NET, Web, Compose, environment examples, and the browser companion.
 
 ## Security checks
 
@@ -215,6 +273,7 @@ Treat audit output as evidence that needs review, not as an automatic guarantee.
 - Keep fixtures deterministic and minimal.
 - Do not commit JWT signing keys, passwords, API tokens, signing keystores, or real attachment data.
 - Randomized/property tests must print a reproducible seed on failure.
+- Full-stack first-run E2E must run only against a disposable empty database.
 
 ## Flaky tests
 
@@ -230,6 +289,6 @@ When a test flakes:
 
 ## Coverage philosophy
 
-CampusCore does not optimize for a single percentage. Coverage must be risk-based. Authentication, authorization, academic calculations, student mutations, imports, uploads, audit behavior, migrations, mobile runtime boundaries, and permission boundaries deserve deeper coverage than passive presentation code.
+CampusCore does not optimize for a single percentage. Coverage must be risk-based. Authentication, authorization, academic calculations, student mutations, imports, uploads, audit behavior, migrations, mobile runtime boundaries, recovery behavior, and permission boundaries deserve deeper coverage than passive presentation code.
 
 A release candidate is not ready when important behavior remains untested merely because an aggregate line-coverage number is high.
