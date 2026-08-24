@@ -1,0 +1,43 @@
+:root.native-runtime {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  overscroll-behavior-y: none;
+}
+
+:root.native-runtime body {
+  min-height: 100dvh;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+:root.native-runtime input,
+:root.native-runtime textarea,
+:root.native-runtime select,
+:root.native-runtime [contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+:root.native-runtime .sidebar {
+  padding-top: max(var(--space-5), var(--safe-area-top));
+  padding-left: max(var(--space-4), var(--safe-area-left));
+}
+
+:root.native-runtime .topbar {
+  padding-top: max(var(--space-3), var(--safe-area-top));
+  padding-right: max(clamp(1rem, 3vw, 2.25rem), var(--safe-area-right));
+}
+
+:root.native-runtime .content {
+  padding-right: max(clamp(1rem, 3vw, 2.3rem), var(--safe-area-right));
+  padding-bottom: max(clamp(1rem, 3vw, 2.3rem), var(--safe-area-bottom));
+  padding-left: max(clamp(1rem, 3vw, 2.3rem), var(--safe-area-left));
+}
+
+@media (max-width: 760px) {
+  :root.native-runtime .topbar {
+    padding-left: max(1rem, var(--safe-area-left));
+  }
+}
