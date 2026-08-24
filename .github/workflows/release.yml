@@ -12,28 +12,52 @@ jobs:
   package:
     name: Build release artifacts
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v6
-        with:
-          global-json-file: global.json
-
-      - name: Publish API
-        run: dotnet publish src/CampusCore.Api/CampusCore.Api.csproj --configuration Release --output artifacts/api
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '24'
 
+      - name: Verify tag and component versions
+        run: node scripts/verify-version.mjs --tag "$GITHUB_REF_NAME"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Restore .NET tools and projects
+        run: |
+          dotnet tool restore
+          dotnet restore CampusCore.sln
+
+      - name: Build .NET release
+        run: dotnet build CampusCore.sln --configuration Release --no-restore
+
+      - name: Publish API
+        run: dotnet publish src/CampusCore.Api/CampusCore.Api.csproj --configuration Release --no-restore --output artifacts/api
+
+      - name: Generate idempotent migration SQL
+        run: |
+          dotnet ef migrations script --idempotent \
+            --no-build \
+            --configuration Release \
+            --project src/CampusCore.Infrastructure \
+            --startup-project src/CampusCore.Api \
+            --output artifacts/migrations.sql
+          test -s artifacts/migrations.sql
+
       - name: Build Web/PWA
         working-directory: src/CampusCore.Web
+        shell: bash
         run: |
           npm install --no-audit --no-fund
-          npm run check
+          version="$(cat ../../VERSION)"
+          VITE_APP_VERSION="$version" npm run check
 
       - name: Package API
         run: tar -C artifacts/api -czf artifacts/campuscore-api-${GITHUB_REF_NAME}.tar.gz .
@@ -62,11 +86,12 @@ jobs:
 
       - name: Generate Android project from tagged source
         working-directory: src/CampusCore.Web
+        shell: bash
         env:
           VITE_API_BASE_URL: https://api.example.test
-          VITE_APP_VERSION: ${{ github.ref_name }}
         run: |
-          npm run build:android
+          version="$(cat ../../VERSION)"
+          VITE_APP_VERSION="$version" npm run build:android
           npx cap add android
           npx cap sync android
 
@@ -82,9 +107,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Add version manifest to release artifacts
+        run: cp VERSION artifacts/VERSION
+
       - name: Create checksums
         working-directory: artifacts
-        run: sha256sum *.tar.gz *.zip > SHA256SUMS.txt
+        run: sha256sum *.tar.gz *.zip migrations.sql VERSION > SHA256SUMS.txt
 
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v6
@@ -93,6 +121,8 @@ jobs:
           path: |
             artifacts/*.tar.gz
             artifacts/*.zip
+            artifacts/migrations.sql
+            artifacts/VERSION
             artifacts/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
@@ -100,4 +130,13 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" artifacts/*.tar.gz artifacts/*.zip artifacts/SHA256SUMS.txt --verify-tag --generate-notes --title "CampusCore ${GITHUB_REF_NAME}"
+        run: >-
+          gh release create "${GITHUB_REF_NAME}"
+          artifacts/*.tar.gz
+          artifacts/*.zip
+          artifacts/migrations.sql
+          artifacts/VERSION
+          artifacts/SHA256SUMS.txt
+          --verify-tag
+          --generate-notes
+          --title "CampusCore ${GITHUB_REF_NAME}"
