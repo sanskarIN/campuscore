@@ -6,6 +6,7 @@ import { AuthProvider } from './auth/AuthContext';
 import { isNativeRuntime, markRuntimeOnDocument } from './platform/runtime';
 import { ThemeProvider } from './theme/ThemeContext';
 import './styles.css';
+import './native.css';
 
 markRuntimeOnDocument();
 
