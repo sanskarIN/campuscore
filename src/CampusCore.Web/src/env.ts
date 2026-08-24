@@ -9,5 +9,5 @@ if (isNativeRuntime() && !configuredApiBaseUrl) {
 
 export const environment = Object.freeze({
   apiBaseUrl: stripTrailingSlash(configuredApiBaseUrl || 'http://localhost:5080'),
-  version: import.meta.env.VITE_APP_VERSION?.trim() || '0.1.0',
+  version: import.meta.env.VITE_APP_VERSION?.trim() || '0.2.0',
 });
