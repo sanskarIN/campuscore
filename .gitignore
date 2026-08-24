@@ -12,6 +12,7 @@ node_modules/
 dist/
 .vite/
 playwright-report/
+playwright-fullstack-report/
 test-results/
 
 # Generated native projects
