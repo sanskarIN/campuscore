@@ -26,9 +26,32 @@ public static class ProductionConfigurationValidator
         if (string.IsNullOrWhiteSpace(allowedHosts) || allowedHosts.Trim() == "*")
             throw new InvalidOperationException("AllowedHosts must explicitly list production host names.");
 
+        ValidateCorsOrigins(configuration.GetSection("Cors:Origins").Get<string[]>() ?? []);
+
         var bootstrapKey = configuration["BootstrapAdmin:Key"];
         if (!string.IsNullOrWhiteSpace(bootstrapKey))
             RequireSecret("BootstrapAdmin:Key", bootstrapKey, minimumLength: 24);
+    }
+
+    private static void ValidateCorsOrigins(IEnumerable<string> origins)
+    {
+        foreach (var rawOrigin in origins)
+        {
+            var origin = rawOrigin?.Trim();
+            if (string.IsNullOrWhiteSpace(origin)) continue;
+
+            RejectUnsafeMarkers("Cors:Origins", origin);
+
+            if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri) ||
+                !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrEmpty(uri.UserInfo) ||
+                !string.IsNullOrEmpty(uri.Query) ||
+                !string.IsNullOrEmpty(uri.Fragment) ||
+                uri.AbsolutePath != "/")
+            {
+                throw new InvalidOperationException("Cors:Origins entries must be HTTPS origins containing only scheme, host, and optional port in production.");
+            }
+        }
     }
 
     private static void RequireSecret(string name, string? value, int minimumLength)
