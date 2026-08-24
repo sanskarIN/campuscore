@@ -18,6 +18,8 @@ const extensionManifest = JSON.parse(read('src/CampusCore.Extension/manifest.jso
 const webEnvironment = read('src/CampusCore.Web/src/env.ts');
 const compose = read('docker-compose.yml');
 const envExample = read('.env.example');
+const changelog = read('CHANGELOG.md');
+const releaseNotes = read(`docs/releases/v${version}.md`);
 
 const dotnetVersion = directoryProps.match(/<CampusCoreVersion>([^<]+)<\/CampusCoreVersion>/u)?.[1];
 const dotnetAssemblyVersion = directoryProps.match(/<AssemblyVersion>([^<]+)<\/AssemblyVersion>/u)?.[1];
@@ -44,6 +46,8 @@ for (const [name, actual] of components) {
 assert.equal(dotnetAssemblyVersion, assemblyVersion, `AssemblyVersion ${dotnetAssemblyVersion} must equal ${assemblyVersion}.`);
 assert.equal(dotnetFileVersion, assemblyVersion, `FileVersion ${dotnetFileVersion} must equal ${assemblyVersion}.`);
 assert.match(extensionManifest.version, /^\d+(?:\.\d+){0,3}$/u, 'Browser extension manifest version must use Chrome numeric version syntax.');
+assert.match(changelog, new RegExp(`^## \\[${version.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')}\\]`, 'mu'), `CHANGELOG.md must contain a ${version} section.`);
+assert.ok(releaseNotes.includes(`v${version}`), `docs/releases/v${version}.md must identify v${version}.`);
 
 const tagIndex = process.argv.indexOf('--tag');
 if (tagIndex >= 0) {
@@ -52,4 +56,4 @@ if (tagIndex >= 0) {
   assert.equal(tag, `v${version}`, `Release tag ${tag} must equal v${version}.`);
 }
 
-console.log(`CampusCore version ${version} is aligned across all release surfaces.`);
+console.log(`CampusCore version ${version} is aligned across code, deployment, and release documentation.`);
