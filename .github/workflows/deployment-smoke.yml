@@ -38,6 +38,8 @@ jobs:
       CAMPUSCORE_JWT_KEY: ci-production-jwt-signing-key-5b9150b52dbf4b999245d0c1459a42f4
       CAMPUSCORE_BOOTSTRAP_KEY: ci-production-bootstrap-key-4e7365126fa24c3a
       CAMPUSCORE_ALLOWED_HOSTS: 127.0.0.1;localhost
+      CAMPUSCORE_CORS_ORIGIN_0: https://app.example.test
+      CAMPUSCORE_CORS_ORIGIN_1: https://localhost
     steps:
       - name: Checkout
         uses: actions/checkout@v7
