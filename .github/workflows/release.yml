@@ -80,7 +80,7 @@ jobs:
             -x '*.DS_Store'
 
       - name: Setup Java for Android verification
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
