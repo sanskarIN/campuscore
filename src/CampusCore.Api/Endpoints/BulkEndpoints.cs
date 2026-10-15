@@ -37,7 +37,8 @@ public static class BulkEndpoints
                 return Results.BadRequest(new { message = "Import contains validation errors.", preview = parsed.Preview });
 
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
-            db.Students.AddRange(parsed.Rows!.Select(row => new Student
+            var validatedRows = parsed.Rows!;
+            db.Students.AddRange(validatedRows.Select(row => new Student
             {
                 AdmissionNumber = row.AdmissionNumber,
                 FirstName = row.FirstName,
@@ -48,9 +49,9 @@ public static class BulkEndpoints
                 AddressLine = EmptyToNull(row.AddressLine)
             }));
             await db.SaveChangesAsync(ct);
-            await audit.WriteAsync("students.bulk_imported", nameof(Student), "batch", new { Count = parsed.Rows.Count }, ct);
+            await audit.WriteAsync("students.bulk_imported", nameof(Student), "batch", new { Count = validatedRows.Count }, ct);
             await transaction.CommitAsync(ct);
-            return Results.Ok(new { imported = parsed.Rows.Count });
+            return Results.Ok(new { imported = validatedRows.Count });
         }).DisableAntiforgery();
 
         group.MapPatch("/students/status", async (BulkStatusRequest request, ApplicationDbContext db, IAuditWriter audit, CancellationToken ct) =>
