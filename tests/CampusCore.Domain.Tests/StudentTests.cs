@@ -48,7 +48,7 @@ public sealed class StudentTests
         AssertThrowsArgument(student.Validate, "Date of birth cannot be in the future.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("AdmissionNumber", 65, "Admission number cannot exceed 64 characters.")]
     [DataRow("FirstName", 121, "First name cannot exceed 120 characters.")]
     [DataRow("LastName", 121, "Last name cannot exceed 120 characters.")]
