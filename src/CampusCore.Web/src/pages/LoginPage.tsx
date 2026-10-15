@@ -40,7 +40,7 @@ export function LoginPage() {
         </div>
 
         <div className="segmented" role="group" aria-label="Authentication mode">
-          <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
+          <button type="button" aria-label="Switch to sign-in mode" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
             Sign in
           </button>
           <button type="button" className={mode === 'bootstrap' ? 'active' : ''} onClick={() => setMode('bootstrap')}>
