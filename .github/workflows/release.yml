@@ -3,8 +3,7 @@ name: Release
 on:
   push:
     branches: [main]
-    tags:
-      - 'v*'
+
 
 permissions:
   contents: write
@@ -20,12 +19,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     if: >-
-      github.ref_type == 'tag' ||
-      (github.ref == 'refs/heads/main' &&
-       startsWith(github.event.head_commit.message, 'chore(release): finalize v1.0.0'))
+      github.ref == 'refs/heads/main' &&
+      (startsWith(github.event.head_commit.message, 'chore(release): finalize v1.0.0') ||
+       startsWith(github.event.head_commit.message, 'chore(release): rebuild v1.0.0'))
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      - name: Audit retired support and donation references
+        shell: bash
+        run: |
+          set -euo pipefail
+          retired_mailbox="supportramsandesh""@gmail.com"
+          retired_donation="buymeacoffee.com/""sanskarIN"
+          if git grep -nFi "$retired_mailbox" -- .; then
+            echo "::error::Retired support mailbox remains in tracked source."
+            exit 1
+          fi
+          if git grep -nF "$retired_donation" -- .; then
+            echo "::error::Outdated donation URL remains in tracked source."
+            exit 1
+          fi
+          git grep -Fq "https://buymeacoffee.com/SanskarCodes" -- README.md .github/FUNDING.yml SUPPORT.md src/CampusCore.Web/src/pages/AboutPage.tsx docs/releases/v1.0.0.md
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -105,6 +120,22 @@ jobs:
           version="$(cat ../../VERSION)"
           VITE_API_BASE_URL=/ VITE_APP_VERSION="$version" npm run check
           npm run verify:release
+
+      - name: Validate public funding and contact in built Web/PWA
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -RFl 'https://buymeacoffee.com/SanskarCodes' src/CampusCore.Web/dist/assets >/dev/null
+          retired_mailbox="supportramsandesh""@gmail.com"
+          retired_donation="buymeacoffee.com/""sanskarIN"
+          if grep -RFi "$retired_mailbox" src/CampusCore.Web/dist; then
+            echo "::error::Retired support mailbox found in packaged Web/PWA."
+            exit 1
+          fi
+          if grep -RF "$retired_donation" src/CampusCore.Web/dist; then
+            echo "::error::Outdated donation URL found in packaged Web/PWA."
+            exit 1
+          fi
 
       - name: Package API
         run: tar -C artifacts/api -czf artifacts/campuscore-api-${RELEASE_TAG}.tar.gz .
@@ -193,7 +224,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Gate first stable release on all required GitHub Actions checks
+      - name: Gate replacement release on all required GitHub Actions checks
         if: github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -227,18 +258,26 @@ jobs:
             exit 1
           fi
 
-      - name: Create annotated release tag after checks pass
+      - name: Replace published release and annotate corrected tag after checks pass
         if: github.ref == 'refs/heads/main'
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git config user.name Sanskar
           git config user.email sanskarin@outlook.in
-          if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
-            echo "::error::Tag ${RELEASE_TAG} already exists; refusing to move it."
-            exit 1
+
+          # Never delete or modify an existing release until all artifact integrity
+          # checks and all seven required same-commit workflow checks have passed.
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release delete "${RELEASE_TAG}" --yes
           fi
-          git tag -a "${RELEASE_TAG}" -m "CampusCore ${RELEASE_TAG}"
+          if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${RELEASE_TAG}"
+          fi
+
+          git tag -a "${RELEASE_TAG}" -m "CampusCore ${RELEASE_TAG} - corrected funding and contacts"
           git push origin "refs/tags/${RELEASE_TAG}"
 
       - name: Publish GitHub release with executable assets
@@ -250,8 +289,8 @@ jobs:
           mapfile -t assets < <(find artifacts -maxdepth 1 -type f -print | sort)
           test "${#assets[@]}" -ge 9
           if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
-            echo "GitHub Release ${RELEASE_TAG} already exists; leaving the published release immutable."
-            exit 0
+            echo "::error::Old release still exists: refusing to upload mismatched assets."
+            exit 1
           fi
           gh release create "${RELEASE_TAG}" "${assets[@]}" \
             --verify-tag \
