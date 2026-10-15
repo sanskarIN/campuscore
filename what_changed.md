@@ -17,9 +17,12 @@ Do not confuse **release preparation** with a published release. The release wor
 - Updated MSTest 4 data attributes and exact async exception assertions.
 - Made validated bulk import row usage explicit for C# nullability analysis.
 - Pinned matching Entity Framework Relational 9.0.19, ASP.NET Identity 9.0.19, JWT 9.0.19, InMemory EF 9.0.19, eliminating missing relational assembly and conflicting version builds.
+- Added EF Core design-time package reference to the API startup project so `dotnet ef migrations script` can generate the release SQL.
+- Explicitly pinned migration ledger table to `public.__EFMigrationsHistory` for consistent migrations on restart/restore. CI now stops the API before recreating it to avoid overlapping migration startup.
 - Fixed TypeScript Vitest assertion type, Node.js typings, axe Playwright type mismatch.
 - Configured service-worker globals for ESLint and removed unused Node import.
-- Scoped sign-in E2E click to the form submit button to avoid ambiguity with authentication-mode button.
+- Scoped sign-in E2E click to the form submit button and differentiated the authentication-mode button's accessible label.
+- Fixed API class/section endpoint serialization to return finite DTO projections rather than cyclic EF navigation graphs.
 - Improved light-theme muted text contrast to resolve a recorded accessibility audit issue.
 
 ## Release workflow and cross-platform executables
