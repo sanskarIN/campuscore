@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { signIn } from './support';
 
 async function expectNoSeriousAccessibilityViolations(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page })
+  const results = await new AxeBuilder({ page: page as unknown as ConstructorParameters<typeof AxeBuilder>[0]['page'] })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .analyze();
 
