@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import process from 'node:process';
 
 const distDirectory = path.resolve('dist');
 const version = (await readFile(path.resolve('../../VERSION'), 'utf8')).trim();
