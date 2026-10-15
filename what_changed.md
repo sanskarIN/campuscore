@@ -1,68 +1,65 @@
-# CampusCore — Work Continuity Log
+# CampusCore — v1.0.0 Release Handoff
 
-Last updated: 2026-08-21
-Current milestone: Phase 3 → Phase 5 continuation (Web/PWA, quality automation, documentation, release hardening)
+Last updated: 2026-10-15 (Asia/Kolkata)
+Target: v1.0.0 first stable self-hosted distribution
+Repository: https://github.com/sanskarIN/campuscore
+Author/committer: Sanskar <sanskarin@outlook.in>
 
-## Repository state inspected
+## Release state
 
-- Default branch: `main`
-- Starting HEAD for this continuation: `2d6bb9de9808aee232ce142e600952de024256a7`
-- Existing backend: .NET 9 ASP.NET Core modular monolith with PostgreSQL, ASP.NET Core Identity/JWT, rate limiting, safe problem responses, audit logging, file storage, migrations, seed data, student/guardian/enrollment/attendance/marks/grades/report-card/timetable/staff/leave/announcement/search/import/export/settings/user administration endpoints.
-- Existing repository baseline includes MIT license, README, security/privacy/support/contribution documents, Docker Compose, formatting configuration, solution and four backend projects.
-- At the start of this continuation there was no React/TypeScript web client, no committed `what_changed.md`, and no `.github` automation or full documentation directory visible at repository root.
+The root `VERSION`, .NET package/assembly properties, Web/PWA package/runtime fallback, browser companion package/manifest, Docker Compose, and example environment were moved from 0.2.0 to **1.0.0**. The complete release notes are in `docs/releases/v1.0.0.md`; `CHANGELOG.md`, `ROADMAP.md`, `README.md`, and `docs/release.md` were updated to document actual release scope.
 
-## Continuation goals
+Do not confuse **release preparation** with a published release. The release workflow only publishes GitHub Release v1.0.0 after the final candidate commit succeeds in its own builds and passes all seven same-commit required workflows. A running, pending or failed job is not verification evidence.
 
-1. Add the production-oriented React/TypeScript Web/PWA client and integrate it with the real API routes.
-2. Provide responsive light/dark/system theming, keyboard navigation, visible focus, offline state, installable manifest/service worker, loading/empty/error states, and `Made by the Sanskar` credit.
-3. Cover primary UI modules: authentication, dashboard, global search, students, academics, staff, announcements, settings/audit, and About/support/funding.
-4. Add frontend type/lint/test/build configuration and deterministic unit/component tests.
-5. Add GitHub Actions CI, CodeQL, dependency updates, release workflow, funding metadata, issue templates, and PR template.
-6. Complete architecture/setup/development/testing/release/troubleshooting/accessibility/performance documentation plus ADRs.
-7. Refresh README, CHANGELOG, ROADMAP and this handoff document after implementation.
+## Code / test corrections committed in this preparation
 
-## Verification policy for this continuation
+- Fixed React type peer dependency mismatch; TypeScript versus typescript-eslint peer mismatch; nonexistent ESLint package pin.
+- Updated MSTest 4 data attributes and exact async exception assertions.
+- Made validated bulk import row usage explicit for C# nullability analysis.
+- Pinned matching Entity Framework Relational 9.0.19, ASP.NET Identity 9.0.19, JWT 9.0.19, InMemory EF 9.0.19, eliminating missing relational assembly and conflicting version builds.
+- Fixed TypeScript Vitest assertion type, Node.js typings, axe Playwright type mismatch.
+- Configured service-worker globals for ESLint and removed unused Node import.
+- Scoped sign-in E2E click to the form submit button to avoid ambiguity with authentication-mode button.
+- Improved light-theme muted text contrast to resolve a recorded accessibility audit issue.
 
-The execution container cannot resolve `github.com`, so it cannot clone the repository or install npm/NuGet dependencies from the network. GitHub reads/writes are being performed through the connected GitHub integration. Therefore:
+## Release workflow and cross-platform executables
 
-- Do not claim local `dotnet`, `npm`, Playwright, lint, type-check, or test success unless a connected CI run actually confirms it.
-- Static consistency is reviewed while editing.
-- CI definitions will perform authoritative clean-run verification on GitHub infrastructure after dependencies can be restored.
-- Any failed workflow discovered after these commits remains a blocking follow-up task and must be fixed before calling the project release-complete.
+`.github/workflows/release.yml` builds from the checked revision, verifies versions, formatting, .NET tests, Web checks, extension checks, Android assembly and migrations, then publishes on successful gated verification.
 
-## Known limitations at continuation start
+- `campuscore-api-v1.0.0-win-x64.zip` — **Windows x64 self-contained API server executable** (`CampusCore.Api.exe`)
+- `campuscore-api-v1.0.0-linux-x64.tar.gz` — **Linux x64 self-contained API server executable**
+- `campuscore-api-v1.0.0-osx-arm64.tar.gz` — **macOS Apple Silicon self-contained API server executable**
+- `campuscore-api-v1.0.0.tar.gz` — framework-dependent API server deployment
+- `campuscore-web-v1.0.0.tar.gz` — Web/PWA static distribution
+- `campuscore-companion-v1.0.0.zip` — browser companion package
+- `campuscore-android-v1.0.0-debug-TEST-ONLY.apk` — Android debug/test verification; non-production example API URL
+- `migrations.sql`, `VERSION`, `SHA256SUMS.txt` — migration review, version and integrity
 
-- Web/PWA client not yet present.
-- Automated repository CI/security/release workflows not yet present.
-- Comprehensive frontend tests not yet present.
-- Required `docs/` documentation set not yet present.
-- Release candidate has not been validated from a clean checkout.
+The executable servers **do not** provide standalone desktop GUIs; they require PostgreSQL, secrets, HTTPS and an operator-maintained backend. The Android APK is not store-signed and targets an example test HTTPS endpoint: do not market it as a functional production/Play Store build. Real AAB signing/API URL must be provided by the deployment owner outside Git.
 
-## Migration notes
+## Action evidence and remaining gate
 
-No database schema changes are planned in the Web/PWA tranche. The frontend consumes the existing `/api/*` contracts. Development CORS already allows `http://localhost:5173`.
+Validated during preparation from GitHub Actions logs:
 
-## Next exact task
+- Earlier `@types/react-dom` peer failure, TypeScript/ESLint peer failure, nonexistent ESLint version, obsolete MSTest assertion usage, EF Core 9.0.1/9.0.19 conflict, API startup assembly errors, Web TS errors, service-worker lint globals, E2E login selector collision, and CSS contrast issue all had identified corrective commits.
+- On the intermediate `e3d1554b` revision: Performance Budget, CodeQL and Android workflows completed **successfully**. Other workflows on that intermediate commit failed or were cancelled due to additional defects/ongoing commits. Intermediate green results do **not** satisfy the final release requirement.
+- After fixes and the version synchronization, final end-to-end quality, migration, recovery, deployment and artifact validation must be verified on the **same final commit** before automatic tag/release publication.
 
-Create `src/CampusCore.Web` as a strict Vite + React + TypeScript PWA, beginning with package/toolchain configuration and the API/authentication foundation.
+Required passing statuses for final v1.0.0 SHA: **CI, CodeQL, Deployment Smoke, Full-stack E2E, Performance Budget, Android, Version Consistency**. The release workflow itself must also pass.
 
-## Release notes draft
+## Release execution
 
-### Unreleased
+1. Confirm versions with `node scripts/verify-version.mjs --tag v1.0.0`.
+2. Publish a finalization commit with message starting `chore(release): finalize v1.0.0`, touching `.github/workflows/release.yml` so all seven required workflows are dispatched.
+3. The release workflow compiles all packages, waits for seven successful workflow conclusions on that same SHA, creates an annotated tag using `sanskarin@outlook.in`, then creates the GitHub Release with downloadable assets.
+4. If any check fails, no release should be asserted; inspect its job logs, commit a fix, rerun the finalization gate from a new commit, and review results.
+5. Confirm release existence, the expected asset files, and SHA-256 values through GitHub after publication.
 
-- Web/PWA client and installability.
-- Responsive product shell, theme and accessibility baseline.
-- Integrated operational screens for core CampusCore workflows.
-- Frontend test/tooling baseline.
-- CI, CodeQL, dependency automation and release workflow.
-- Complete maintainer/developer documentation set.
+## Follow-ups not incorrectly counted as v1.0.0 production features
 
-## Meaningful commits from prior work
+- Owner-provisioned production Android AAB signing, HTTPS backend deployment, physical-device acceptance testing.
+- Browser companion marketplace packaging/listing approval.
+- Reviewed npm lockfile and npm ci migration.
+- Stronger release provenance/attestation and migration upgrade-path testing.
 
-- `2d6bb9d` — feat(api): enable bulk reports attachments and user administration
-- `f81983d` — fix(api): return safe conflict responses for database constraints
-- `a5b4fe9` — feat(api): add guarded role and account administration
-- `e3ceb40` — feat(api): add validated announcement attachment storage
-- `c0d0ace` — feat(api): add report card endpoint
-- `af0acfe` — feat(api): add validated transactional student bulk import
-- `4e62d82` — feat(api): compose secured CampusCore HTTP host
+MIT licensed. Made by the Sanskar.
