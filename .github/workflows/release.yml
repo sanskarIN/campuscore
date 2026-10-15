@@ -1,5 +1,6 @@
 name: Release
 
+# Release candidate: build all corrected public links before replacing v1.0.0.
 # One author-requested final v1.0.0 rebuild: package the updated website link
 # with the validated backend, Web/PWA and Android debug distribution.
 # The previous published v1.0.0 remains available until required workflow
