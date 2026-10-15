@@ -2,6 +2,7 @@ name: Release
 
 on:
   push:
+    branches: [main]
     tags:
       - 'v*'
 
@@ -12,7 +13,8 @@ jobs:
   package:
     name: Build release artifacts
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 75
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'chore(release): finalize v1.0.0'))
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -23,7 +25,14 @@ jobs:
           node-version: '24'
 
       - name: Verify tag and component versions
-        run: node scripts/verify-version.mjs --tag "$GITHUB_REF_NAME"
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            node scripts/verify-version.mjs --tag "$GITHUB_REF_NAME"
+          else
+            node scripts/verify-version.mjs
+          fi
+          echo "RELEASE_TAG=v$(cat VERSION)" >> "$GITHUB_ENV"
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -35,11 +44,40 @@ jobs:
           dotnet tool restore
           dotnet restore CampusCore.sln
 
+      - name: Verify .NET formatting
+        run: dotnet format CampusCore.sln --verify-no-changes --no-restore
+
       - name: Build .NET release
-        run: dotnet build CampusCore.sln --configuration Release --no-restore
+        run: dotnet build CampusCore.sln --configuration Release --no-restore -warnaserror
+
+      - name: Run .NET tests
+        run: dotnet test CampusCore.sln --configuration Release --no-build
 
       - name: Publish API
         run: dotnet publish src/CampusCore.Api/CampusCore.Api.csproj --configuration Release --no-restore --output artifacts/api
+
+      - name: Package self-contained API server executables
+        shell: bash
+        run: |
+          set -euo pipefail
+          for rid in linux-x64 win-x64 osx-arm64; do
+            dotnet publish src/CampusCore.Api/CampusCore.Api.csproj \
+              --configuration Release \
+              --runtime "$rid" \
+              --self-contained true \
+              -p:PublishSingleFile=true \
+              -p:PublishTrimmed=false \
+              -p:DebugType=None \
+              -p:DebugSymbols=false \
+              --output "artifacts/publish/$rid"
+            if [[ "$rid" == win-* ]]; then
+              test -s "artifacts/publish/$rid/CampusCore.Api.exe"
+              (cd "artifacts/publish/$rid" && zip -qr "../../campuscore-api-${RELEASE_TAG}-$rid.zip" .)
+            else
+              test -s "artifacts/publish/$rid/CampusCore.Api"
+              tar -C "artifacts/publish/$rid" -czf "artifacts/campuscore-api-${RELEASE_TAG}-$rid.tar.gz" .
+            fi
+          done
 
       - name: Generate idempotent migration SQL
         run: |
@@ -61,10 +99,10 @@ jobs:
           npm run verify:release
 
       - name: Package API
-        run: tar -C artifacts/api -czf artifacts/campuscore-api-${GITHUB_REF_NAME}.tar.gz .
+        run: tar -C artifacts/api -czf artifacts/campuscore-api-${RELEASE_TAG}.tar.gz .
 
       - name: Package Web/PWA
-        run: tar -C src/CampusCore.Web/dist -czf artifacts/campuscore-web-${GITHUB_REF_NAME}.tar.gz .
+        run: tar -C src/CampusCore.Web/dist -czf artifacts/campuscore-web-${RELEASE_TAG}.tar.gz .
 
       - name: Validate browser companion
         working-directory: src/CampusCore.Extension
@@ -73,7 +111,7 @@ jobs:
       - name: Package browser companion
         working-directory: src/CampusCore.Extension
         run: |
-          zip -r ../../artifacts/campuscore-companion-${GITHUB_REF_NAME}.zip . \
+          zip -r ../../artifacts/campuscore-companion-${RELEASE_TAG}.zip . \
             -x 'package.json' \
             -x 'validate.mjs' \
             -x 'README.md' \
@@ -108,12 +146,18 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Include Android test-only APK in release artifacts
+        shell: bash
+        run: |
+          cp src/CampusCore.Web/android/app/build/outputs/apk/debug/app-debug.apk "artifacts/campuscore-android-${RELEASE_TAG}-debug-TEST-ONLY.apk"
+          test -s "artifacts/campuscore-android-${RELEASE_TAG}-debug-TEST-ONLY.apk"
+
       - name: Add version manifest to release artifacts
         run: cp VERSION artifacts/VERSION
 
       - name: Create checksums
         working-directory: artifacts
-        run: sha256sum *.tar.gz *.zip migrations.sql VERSION > SHA256SUMS.txt
+        run: sha256sum *.tar.gz *.zip *.apk migrations.sql VERSION > SHA256SUMS.txt
 
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v7
@@ -122,22 +166,70 @@ jobs:
           path: |
             artifacts/*.tar.gz
             artifacts/*.zip
+            artifacts/*.apk
             artifacts/migrations.sql
             artifacts/VERSION
             artifacts/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
 
-      - name: Create GitHub release
+      - name: Gate first stable release on all required GitHub Actions checks
+        if: github.ref == 'refs/heads/main'
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create "${GITHUB_REF_NAME}"
-          artifacts/*.tar.gz
-          artifacts/*.zip
-          artifacts/migrations.sql
-          artifacts/VERSION
-          artifacts/SHA256SUMS.txt
-          --verify-tag
-          --generate-notes
-          --title "CampusCore ${GITHUB_REF_NAME}"
+        run: |
+          set -euo pipefail
+          required=("CI" "CodeQL" "Deployment Smoke" "Full-stack E2E" "Performance Budget" "Android" "Version Consistency")
+          verified=0
+          for attempt in {1..50}; do
+            runs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${GITHUB_SHA}&per_page=100")"
+            pending=()
+            for workflow in "${required[@]}"; do
+              conclusion="$(jq -r --arg workflow "$workflow" '[.workflow_runs[] | select(.name == $workflow)] | first | .conclusion // "pending"' <<<"$runs")"
+              if [[ "$conclusion" != success ]]; then
+                pending+=("$workflow=$conclusion")
+              fi
+            done
+            if (( ${#pending[@]} == 0 )); then
+              verified=1
+              break
+            fi
+            echo "Release gate pending or failing: ${pending[*]}"
+            if [[ "${pending[*]}" == *failure* ]]; then
+              echo "::error::A required workflow failed; refusing to tag an unverified build."
+              exit 1
+            fi
+            sleep 30
+          done
+          if (( verified != 1 )); then
+            echo "::error::Required workflows did not all complete successfully."
+            exit 1
+          fi
+
+      - name: Create annotated release tag after checks pass
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name Sanskar
+          git config user.email sanskarin@outlook.in
+          if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "::error::Tag ${RELEASE_TAG} already exists; refusing to move it."
+            exit 1
+          fi
+          git tag -a "${RELEASE_TAG}" -m "CampusCore ${RELEASE_TAG}"
+          git push origin "refs/tags/${RELEASE_TAG}"
+
+      - name: Publish GitHub release with executable assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mapfile -t assets < <(find artifacts -maxdepth 1 -type f -print | sort)
+          test "${#assets[@]}" -ge 9
+          gh release create "${RELEASE_TAG}" "${assets[@]}" \
+            --verify-tag \
+            --notes-file "docs/releases/${RELEASE_TAG}.md" \
+            --title "CampusCore ${RELEASE_TAG}"
