@@ -13,7 +13,7 @@ test('protects authenticated routes and completes sign-in/sign-out', async ({ pa
 
   await page.getByRole('button', { name: 'Sign out' }).click();
   await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
+  await expect(page.locator('form').getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
 });
 
 test('keeps administrator-only routes unavailable to teachers', async ({ page }) => {
