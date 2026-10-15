@@ -82,7 +82,7 @@ jobs:
               test -s "artifacts/publish/$rid/CampusCore.Api.exe"
               (cd "artifacts/publish/$rid" && zip -qr "../../campuscore-api-${RELEASE_TAG}-$rid.zip" .)
             else
-              test -s "artifacts/publish/$rid/CampusCore.Api"
+              test -x "artifacts/publish/$rid/CampusCore.Api"
               tar -C "artifacts/publish/$rid" -czf "artifacts/campuscore-api-${RELEASE_TAG}-$rid.tar.gz" .
             fi
           done
