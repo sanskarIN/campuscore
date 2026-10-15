@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
 
@@ -75,12 +75,84 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Upload web artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: campuscore-web
           path: src/CampusCore.Web/dist
           if-no-files-found: error
           retention-days: 7
+
+  web-e2e:
+    name: Web E2E and accessibility
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/CampusCore.Web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: campuscore-playwright-report
+          path: src/CampusCore.Web/playwright-report
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload browser traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: campuscore-playwright-results
+          path: src/CampusCore.Web/test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  operations-scripts:
+    name: Operations script quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Validate shell scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          for script in scripts/*.sh; do
+            sh -n "$script"
+          done
+
+      - name: Validate PowerShell scripts
+        shell: pwsh
+        run: |
+          $parseErrors = @()
+          Get-ChildItem scripts -Filter '*.ps1' | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            $parseErrors += $errors
+          }
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
 
   compose:
     name: Container configuration
@@ -90,3 +162,111 @@ jobs:
         uses: actions/checkout@v7
       - name: Validate Compose
         run: docker compose config --quiet
+
+  migrations:
+    name: Database migration integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Start clean database
+        run: docker compose up -d postgres --wait --wait-timeout 120
+
+      - name: Build and start API
+        run: docker compose up -d --build api --wait --wait-timeout 240
+
+      - name: Verify all committed migrations are applied
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(find src/CampusCore.Infrastructure/Persistence/Migrations -maxdepth 1 -type f -name '[0-9]*_*.cs' ! -name '*.Designer.cs' | wc -l | tr -d ' ')"
+          applied="$(docker compose exec -T postgres psql --username campuscore --dbname campuscore --tuples-only --no-align --command 'SELECT COUNT(*) FROM "__EFMigrationsHistory";' | tr -d '\r')"
+          test "$expected" -gt 0
+          test "$applied" = "$expected"
+
+      - name: Verify startup migration idempotence
+        shell: bash
+        run: |
+          set -euo pipefail
+          before="$(docker compose exec -T postgres psql --username campuscore --dbname campuscore --tuples-only --no-align --command 'SELECT COUNT(*) FROM "__EFMigrationsHistory";' | tr -d '\r')"
+          docker compose restart api
+          docker compose up -d api --wait --wait-timeout 180
+          after="$(docker compose exec -T postgres psql --username campuscore --dbname campuscore --tuples-only --no-align --command 'SELECT COUNT(*) FROM "__EFMigrationsHistory";' | tr -d '\r')"
+          test "$after" = "$before"
+          curl --fail --retry 20 --retry-delay 2 --retry-all-errors http://127.0.0.1:5080/readyz
+
+      - name: Show migration logs on failure
+        if: failure()
+        run: docker compose logs --no-color postgres api
+
+      - name: Tear down migration stack
+        if: always()
+        run: docker compose down -v --remove-orphans
+
+  recovery:
+    name: Backup and restore drill
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build and start clean stack
+        run: docker compose up -d --build --wait --wait-timeout 240
+
+      - name: Seed recovery markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose exec -T postgres psql \
+            --username campuscore \
+            --dbname campuscore \
+            --set ON_ERROR_STOP=1 \
+            --command "CREATE TABLE ci_restore_marker (id integer PRIMARY KEY, value text NOT NULL); INSERT INTO ci_restore_marker VALUES (1, 'before');"
+          docker compose exec -T api sh -ec 'printf "%s\n" before > /data/uploads/ci-restore-marker.txt'
+
+      - name: Create and verify backup
+        id: backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/backup.sh .ci-backups
+          backup_dir="$(find .ci-backups -mindepth 1 -maxdepth 1 -type d -name 'campuscore-*' -print -quit)"
+          test -n "$backup_dir"
+          ./scripts/verify-backup.sh "$backup_dir"
+          echo "backup_dir=$backup_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Mutate live state after backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose exec -T postgres psql \
+            --username campuscore \
+            --dbname campuscore \
+            --set ON_ERROR_STOP=1 \
+            --command "UPDATE ci_restore_marker SET value = 'after' WHERE id = 1;"
+          docker compose exec -T api sh -ec 'printf "%s\n" after > /data/uploads/ci-restore-marker.txt'
+
+      - name: Restore backup
+        run: ./scripts/restore.sh "${{ steps.backup.outputs.backup_dir }}" --confirm
+
+      - name: Verify recovered database and attachments
+        shell: bash
+        run: |
+          set -euo pipefail
+          db_value="$(docker compose exec -T postgres psql --username campuscore --dbname campuscore --tuples-only --no-align --command 'SELECT value FROM ci_restore_marker WHERE id = 1;' | tr -d '\r')"
+          test "$db_value" = "before"
+          upload_value="$(docker compose exec -T api cat /data/uploads/ci-restore-marker.txt | tr -d '\r\n')"
+          test "$upload_value" = "before"
+          curl --fail --retry 30 --retry-delay 2 --retry-all-errors http://127.0.0.1:5080/readyz
+          curl --fail --retry 30 --retry-delay 2 --retry-all-errors http://127.0.0.1:8081/readyz
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Tear down recovery stack
+        if: always()
+        run: docker compose down -v --remove-orphans

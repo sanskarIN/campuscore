@@ -20,9 +20,12 @@ public sealed class ReportService(IApplicationDbContext db)
         return Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
     }
 
-    private static string Csv(string? value)
+    internal static string Csv(string? value)
     {
         var text = value ?? string.Empty;
+        var significant = text.TrimStart(' ', '\t', '\r', '\n');
+        if (significant.Length > 0 && significant[0] is '=' or '+' or '-' or '@')
+            text = "'" + text;
         return '"' + text.Replace("\"", "\"\"") + '"';
     }
 }

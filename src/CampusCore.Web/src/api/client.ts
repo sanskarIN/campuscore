@@ -46,6 +46,12 @@ function messageFromFailure(details: unknown, fallback: string): string {
   return fallback;
 }
 
+function handleUnauthorized(status: number, hadToken: boolean): void {
+  if (status !== 401 || !hadToken) return;
+  clearSession();
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('campuscore:unauthorized'));
+}
+
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   const token = getAccessToken();
@@ -61,10 +67,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
     credentials: 'omit',
   });
 
-  if (response.status === 401 && token) {
-    clearSession();
-    if (typeof window !== 'undefined') window.dispatchEvent(new Event('campuscore:unauthorized'));
-  }
+  handleUnauthorized(response.status, Boolean(token));
 
   if (!response.ok) {
     const details = await parseFailure(response);
@@ -86,6 +89,7 @@ export async function apiDownload(path: string): Promise<Blob> {
   const headers = new Headers();
   if (token) headers.set('Authorization', `Bearer ${token}`);
   const response = await fetch(resolveUrl(path), { headers, credentials: 'omit' });
+  handleUnauthorized(response.status, Boolean(token));
   if (!response.ok) {
     const details = await parseFailure(response);
     throw new ApiError(messageFromFailure(details, 'Download failed.'), response.status, details);

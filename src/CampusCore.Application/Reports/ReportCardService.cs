@@ -32,8 +32,15 @@ public sealed record ReportCard(
 
 public sealed class ReportCardService(IApplicationDbContext db)
 {
-    public async Task<ReportCard?> GetAsync(Guid studentId, Guid academicYearId, CancellationToken cancellationToken)
+    public Task<ReportCard?> GetAsync(Guid studentId, Guid academicYearId, CancellationToken cancellationToken) =>
+        GetAsync(studentId, academicYearId, "Default", cancellationToken);
+
+    public async Task<ReportCard?> GetAsync(Guid studentId, Guid academicYearId, string? scaleName, CancellationToken cancellationToken)
     {
+        var normalizedScale = string.IsNullOrWhiteSpace(scaleName) ? "Default" : scaleName.Trim();
+        if (normalizedScale.Length > 120) throw new ArgumentException("Grade scale name cannot exceed 120 characters.");
+        var scaleKey = normalizedScale.ToLower();
+
         var student = await db.Students.AsNoTracking().SingleOrDefaultAsync(x => x.Id == studentId, cancellationToken);
         if (student is null) return null;
 
@@ -49,7 +56,10 @@ public sealed class ReportCardService(IApplicationDbContext db)
             .Where(x => x.StudentId == studentId && x.AcademicYearId == academicYearId)
             .OrderBy(x => x.Subject!.Name).ThenBy(x => x.AssessmentName)
             .ToListAsync(cancellationToken);
-        var grades = await db.GradeScales.AsNoTracking().OrderByDescending(x => x.MinimumPercentage).ToListAsync(cancellationToken);
+        var grades = await db.GradeScales.AsNoTracking()
+            .Where(x => x.Name.ToLower() == scaleKey)
+            .OrderByDescending(x => x.MinimumPercentage)
+            .ToListAsync(cancellationToken);
 
         var subjectRows = marks
             .GroupBy(x => new { x.SubjectId, Code = x.Subject!.Code, Name = x.Subject.Name })

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>CampusCore Companion settings</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="options-page">
+  <main class="options-shell" aria-labelledby="settings-title">
+    <header>
+      <p class="eyebrow">CampusCore Companion</p>
+      <h1 id="settings-title">Extension settings</h1>
+      <p class="muted">Choose the CampusCore web address this extension should open. Credentials are never stored by the extension.</p>
+    </header>
+
+    <form id="settings-form" class="settings-form" novalidate>
+      <label for="campus-url">CampusCore URL</label>
+      <input id="campus-url" name="campus-url" type="url" inputmode="url" autocomplete="url" placeholder="https://campus.example.edu" required aria-describedby="url-help save-status">
+      <p id="url-help" class="help">Use HTTPS for deployed instances. HTTP is accepted only for localhost development.</p>
+      <div class="form-actions">
+        <button type="submit">Save settings</button>
+        <button id="reset-url" class="secondary" type="button">Reset to local development</button>
+      </div>
+      <p id="save-status" class="status" role="status" aria-live="polite"></p>
+    </form>
+
+    <section class="privacy-note" aria-labelledby="privacy-title">
+      <h2 id="privacy-title">Privacy boundary</h2>
+      <p>The companion requests only browser storage permission. It does not read page content, browsing history, passwords, or CampusCore authentication tokens.</p>
+    </section>
+
+    <p class="credit">Made by the Sanskar</p>
+  </main>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

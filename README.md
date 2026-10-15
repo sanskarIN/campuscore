@@ -1,12 +1,16 @@
 # CampusCore
 
-> A secure, accessible, production-oriented student management system built with ASP.NET Core, PostgreSQL, React, and TypeScript.
+> A secure, accessible, production-oriented student management system built with ASP.NET Core, PostgreSQL, React, TypeScript, and Capacitor.
 
 [![CI](https://github.com/sanskarIN/campuscore/actions/workflows/ci.yml/badge.svg)](https://github.com/sanskarIN/campuscore/actions/workflows/ci.yml)
+[![Android](https://github.com/sanskarIN/campuscore/actions/workflows/android.yml/badge.svg)](https://github.com/sanskarIN/campuscore/actions/workflows/android.yml)
+[![Browser extension](https://github.com/sanskarIN/campuscore/actions/workflows/extension.yml/badge.svg)](https://github.com/sanskarIN/campuscore/actions/workflows/extension.yml)
 [![CodeQL](https://github.com/sanskarIN/campuscore/actions/workflows/codeql.yml/badge.svg)](https://github.com/sanskarIN/campuscore/actions/workflows/codeql.yml)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-sanskarIN-FFDD00?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/sanskarIN)
 
 **Made by the Sanskar**
+
+**Current prepared version:** `0.2.0` release candidate. The `v0.2.0` tag is intentionally not considered released until the required GitHub Actions gates are confirmed green. The root [`VERSION`](VERSION) file is the release version source of truth.
 
 ## Why CampusCore
 
@@ -18,39 +22,44 @@ CampusCore centralizes student records, guardians, enrollment, staff, attendance
 - Academic years, classes, sections, subjects, and subject assignment
 - Staff directory and role-based authorization foundation
 - Attendance, leave, marks, grades, report-card data, and timetables
-- Announcements with attachment metadata
-- Global search, filtering, pagination, bulk-import validation, and export endpoints
+- Announcements with validated attachment handling
+- Global search, filtering, pagination, transactional bulk-import validation, and export endpoints
 - Privacy-conscious dashboard metrics and audit logs
 - Institution settings and configurable grading rules
 - Responsive React/TypeScript web client with light/dark/system themes
 - PWA/offline shell, accessible navigation, loading/empty/error states, and printable report styling
+- Capacitor Android packaging with native-runtime safe areas, lifecycle/back behavior, and dedicated APK build verification
+- Manifest V3 CampusCore Companion preparation for Chrome/Edge-compatible browsers with storage-only permission
 - PostgreSQL persistence with EF Core migrations and transaction-aware services
-- Structured logging, security headers, rate limiting, secret-safe configuration, health checks, and OpenAPI
-
-## Screenshots
-
-Real release screenshots are captured from the running application and stored under `docs/screenshots/`. Until the first tagged release is deployed, see the UI implementation in `apps/web/src`.
+- Structured logging, security headers, rate limiting, production configuration validation, liveness/readiness checks, and OpenAPI
+- Cross-platform backup/verification/restore scripts, recovery drills, migration integrity checks, deployment smoke tests, accessibility E2E tests, and bundle budgets
+- Repository-wide version consistency and tag/artifact verification for v0.2.0
 
 ## Supported platforms
 
-CampusCore is delivered as a responsive **Web/PWA** application and is designed for current Chromium, Firefox, and Safari-based browsers on Windows, macOS, Linux, Android, iOS, and iPadOS.
+- **Web/PWA:** current Chromium, Firefox, and Safari-based browsers on Windows, macOS, Linux, Android, iOS, and iPadOS.
+- **Android native shell:** generated from the shared web client with Capacitor; see [`docs/android.md`](docs/android.md).
+- **Browser companion preparation:** Chromium Manifest V3 package for Chrome/Edge-compatible browsers; see [`src/CampusCore.Extension/README.md`](src/CampusCore.Extension/README.md).
 
 ## Technology
 
 - .NET 9 / ASP.NET Core Web API
 - Entity Framework Core + PostgreSQL
 - ASP.NET Core Identity + JWT bearer authentication
-- React 19 + TypeScript + Vite
-- TanStack Query
-- Vitest + Testing Library + Playwright
-- xUnit + FluentAssertions
+- React 19 + TypeScript + Vite + React Router
+- Capacitor 8 Android runtime
+- Vitest + Playwright + axe-core browser accessibility checks
+- MSTest + coverlet for .NET tests
 - GitHub Actions + CodeQL + Dependabot
 
 ## Quick start
 
+Start PostgreSQL and the API locally:
+
 ```bash
 cp .env.example .env
 docker compose up -d postgres
+dotnet tool restore
 dotnet restore CampusCore.sln
 dotnet ef database update --project src/CampusCore.Infrastructure --startup-project src/CampusCore.Api
 dotnet run --project src/CampusCore.Api
@@ -59,54 +68,108 @@ dotnet run --project src/CampusCore.Api
 In a second terminal:
 
 ```bash
-cd apps/web
-npm ci
+cd src/CampusCore.Web
+npm install
 npm run dev
 ```
 
 Open `http://localhost:5173`. API documentation is available in development at `http://localhost:5080/openapi/v1.json`.
 
+For a containerized local stack instead, configure `.env` and run:
+
+```bash
+docker compose up -d --build --wait
+```
+
+The containerized web app is exposed on the configured `CAMPUSCORE_WEB_BIND` / `CAMPUSCORE_WEB_PORT` values (defaults: `127.0.0.1:8081`).
+
+## Android development
+
+From `src/CampusCore.Web`, copy `.env.android.example` to `.env.android`, configure the API target, and generate the native project:
+
+```bash
+npm install
+npm run android:init
+npm run android:open
+```
+
+After web changes, use `npm run android:sync`. Android CI derives its displayed build version from the root `VERSION` file, regenerates the native project, and assembles a debug APK from committed source. See [`docs/android.md`](docs/android.md) for emulator networking, CORS, release signing, and troubleshooting.
+
+## Browser extension preparation
+
+The extension source is in `src/CampusCore.Extension`. It intentionally has no content scripts or host permissions and does not store CampusCore credentials/tokens.
+
+```bash
+cd src/CampusCore.Extension
+npm run check
+```
+
+See [`src/CampusCore.Extension/README.md`](src/CampusCore.Extension/README.md) for loading and packaging instructions.
+
 ## Development setup
 
-See [`docs/setup.md`](docs/setup.md) and [`docs/development.md`](docs/development.md). Configuration is environment-driven; never commit real credentials. The local compose file starts PostgreSQL only, so the API and web client retain fast local hot reload.
+See [`docs/setup.md`](docs/setup.md) and [`docs/development.md`](docs/development.md). Configuration is environment-driven; never commit real credentials.
 
 ## Testing and quality
+
+Backend:
 
 ```bash
 dotnet format CampusCore.sln --verify-no-changes
 dotnet test CampusCore.sln --configuration Release
-cd apps/web && npm ci && npm run lint && npm run typecheck && npm run test:run && npm run build
 ```
 
-For browser journeys:
+Web client:
 
 ```bash
-cd apps/web
+cd src/CampusCore.Web
+npm install
+npm run check
+```
+
+Browser journeys:
+
+```bash
+cd src/CampusCore.Web
 npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-See [`docs/testing.md`](docs/testing.md) for database integration and accessibility checks.
+Version alignment:
+
+```bash
+node scripts/verify-version.mjs
+```
+
+See [`docs/testing.md`](docs/testing.md) for database integration, browser, and accessibility checks.
 
 ## Build and release
 
 ```bash
+node scripts/verify-version.mjs
 dotnet publish src/CampusCore.Api/CampusCore.Api.csproj -c Release -o artifacts/api
-cd apps/web && npm ci && npm run build
+cd src/CampusCore.Web
+npm install
+npm run build
 ```
 
-Tagged releases are built by `.github/workflows/release.yml`. See [`docs/release.md`](docs/release.md).
+Tagged releases are built by `.github/workflows/release.yml`, which rejects a tag that does not match `VERSION`. The prepared v0.2.0 candidate notes are in [`docs/releases/v0.2.0.md`](docs/releases/v0.2.0.md). See [`docs/release.md`](docs/release.md) and [`docs/deployment.md`](docs/deployment.md).
+
+The repository does not yet contain an npm lockfile, so Node automation intentionally uses `npm install`. Do not change clean/release jobs to `npm ci` until a reviewed lockfile is committed.
 
 ## Architecture
 
-CampusCore is a modular monolith using Domain → Application → Infrastructure → API dependencies, with the React PWA as a separate client. Business rules stay outside controllers and EF Core mappings stay outside the domain. See [`docs/architecture.md`](docs/architecture.md) and [`docs/adr/`](docs/adr/).
+CampusCore is a modular monolith using Domain → Application → Infrastructure → API dependencies, with the React PWA as a separate client. The Android package reuses that client through Capacitor, while the browser companion remains a minimal navigation surface. Business rules stay outside HTTP endpoint composition and EF Core mappings stay outside the domain. See [`docs/architecture.md`](docs/architecture.md) and [`docs/adr/`](docs/adr/).
 
 ## Security and privacy
 
 - No production secret belongs in Git.
-- Authentication secrets are supplied through environment variables or a secret store.
+- Authentication and signing secrets are supplied through environment variables, CI secrets, or a secret store.
 - PII is intentionally excluded from structured audit detail and application logs.
 - File uploads are constrained by allow-list, size, and generated storage names.
+- Android production API targets and configured production CORS origins are HTTPS-only.
+- The browser companion currently requests only `storage` permission and does not inspect page content.
+- Production startup rejects known development/local secret placeholders and wildcard `AllowedHosts`.
 - See [`SECURITY.md`](SECURITY.md), [`PRIVACY.md`](PRIVACY.md), and [`THREAT_MODEL.md`](THREAT_MODEL.md).
 
 ## Contributing
