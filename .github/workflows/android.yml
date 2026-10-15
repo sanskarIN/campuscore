@@ -6,12 +6,14 @@ on:
     paths:
       - 'VERSION'
       - 'src/CampusCore.Web/**'
+      - '.github/workflows/release.yml'
       - '.github/workflows/android.yml'
   pull_request:
     branches: [main]
     paths:
       - 'VERSION'
       - 'src/CampusCore.Web/**'
+      - '.github/workflows/release.yml'
       - '.github/workflows/android.yml'
 
 permissions:
