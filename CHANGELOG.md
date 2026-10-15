@@ -1,14 +1,36 @@
 # Changelog
 
-All notable changes are documented here. The project follows Keep a Changelog conventions and intends to use Semantic Versioning.
+All notable changes are documented here. The project follows Keep a Changelog conventions and Semantic Versioning for stable releases.
 
 ## [Unreleased]
 
 ### Planned
-- Complete the v0.2.0 release-candidate verification cycle and create the tag only after required GitHub Actions checks are green.
-- Add a reviewed npm lockfile and move clean/release Node installs from `npm install` to `npm ci`.
-- Add signed Android App Bundle configuration and store-ready metadata outside source-controlled secrets.
-- Finish browser companion store branding, icons, screenshots, privacy metadata, and publication review.
+- Production Android App Bundle signing and Play Store configuration after the deployment owner supplies a secure keystore and production HTTPS API URL.
+- Browser companion publishing workflow, store branding, and listings.
+- Reviewed npm lockfiles and reproducible `npm ci` deployment builds.
+- Expanded upgrade-path, load, and cross-device verification.
+
+## [1.0.0] - 2026-10-15
+
+### Added
+- First stable self-hosted CampusCore distribution with Windows x64, Linux x64, and Apple Silicon macOS API-server executable archives.
+- Release workflow that gates first-stable publication on same-commit CI, CodeQL, Android, E2E, deployment, performance and version checks; creates a tag only after all pass.
+- SHA-256 hashes for downloadable archives, migration SQL, version manifest and an Android debug/testing APK.
+- Explicit release notes documenting backend/database requirements and debug APK limitations.
+
+### Fixed
+- npm React/React DOM types mismatch, TypeScript lint ecosystem mismatch and unavailable package versions that previously prevented dependency installation.
+- MSTest data-row and exception assertion changes required by updated test dependencies.
+- ASP.NET Core/EF Core relational assembly version drift that prevented Docker API startup.
+- Static analysis and build blockers in API bulk imports and Web/Playwright type checking.
+- Browser sign-in test selector ambiguity and color contrast deficiency on authentication controls.
+- Service-worker lint environment and unused import warnings.
+
+### Compatibility and limitations
+- This release distributes API **servers** and a Web/PWA application, not standalone desktop GUI executables.
+- Android APK is for verification only and is configured with an example (non-production) API URL. It is not suitable for Google Play publishing.
+- User deployment must configure PostgreSQL, HTTPS, allowed hosts, signing secrets, and backups; no live backend is bundled.
+- Browser companion is an unpackable manual-install developer package, not a marketplace release.
 
 ## [0.2.0] - Release candidate
 
