@@ -1,7 +1,7 @@
 name: Release
 
-# Explicit author-requested v1.0.0 replacement: rebuild and verify all packages
-# before deleting the previously published release or moving its tag.
+# Published v1.0.0 tags/assets must remain immutable after the verified replacement.
+# A future release requires a new version and separately updated release notes.
 
 on:
   push:
@@ -23,8 +23,7 @@ jobs:
     timeout-minutes: 75
     if: >-
       github.ref == 'refs/heads/main' &&
-      (startsWith(github.event.head_commit.message, 'chore(release): finalize v1.0.0') ||
-       startsWith(github.event.head_commit.message, 'chore(release): rebuild v1.0.0'))
+      startsWith(github.event.head_commit.message, 'chore(release): finalize v1.0.0')
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -227,7 +226,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Gate replacement release on all required GitHub Actions checks
+      - name: Gate release on all required GitHub Actions checks
         if: github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -261,26 +260,18 @@ jobs:
             exit 1
           fi
 
-      - name: Replace published release and annotate corrected tag after checks pass
+      - name: Create new annotated release tag after checks pass
         if: github.ref == 'refs/heads/main'
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git config user.name Sanskar
           git config user.email sanskarin@outlook.in
-
-          # Never delete or modify an existing release until all artifact integrity
-          # checks and all seven required same-commit workflow checks have passed.
-          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
-            gh release delete "${RELEASE_TAG}" --yes
-          fi
           if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
-            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${RELEASE_TAG}"
+            echo "::error::Tag ${RELEASE_TAG} already exists; refusing to overwrite a published version."
+            exit 1
           fi
-
-          git tag -a "${RELEASE_TAG}" -m "CampusCore ${RELEASE_TAG} - corrected funding and contacts"
+          git tag -a "${RELEASE_TAG}" -m "CampusCore ${RELEASE_TAG}"
           git push origin "refs/tags/${RELEASE_TAG}"
 
       - name: Publish GitHub release with executable assets
