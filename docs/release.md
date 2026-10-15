@@ -12,7 +12,7 @@ CampusCore follows Semantic Versioning once public stable releases begin:
 
 The repository root `VERSION` file is the release version source of truth. Component metadata must match it. Pre-release tags may use identifiers such as `v0.3.0-rc.1` only when every release surface can represent that version safely.
 
-For the current release candidate, `VERSION` is `0.2.0` and the intended tag is `v0.2.0`.
+For the stable release candidate, `VERSION` is `1.0.0` and the intended tag is `v1.0.0`. No release is considered published before the GitHub Release page and assets exist.
 
 ## Release prerequisites
 
@@ -38,7 +38,7 @@ node scripts/verify-version.mjs
 For a candidate tag:
 
 ```bash
-node scripts/verify-version.mjs --tag v0.2.0
+node scripts/verify-version.mjs --tag v1.0.0
 ```
 
 The check validates the root version against:
@@ -151,22 +151,24 @@ See `docs/backup-restore.md`.
 
 `.github/workflows/release.yml` produces artifacts from the tagged source only after its build/validation steps succeed.
 
-For `v0.2.0`, expected public GitHub Release files are:
+For `v1.0.0`, expected public GitHub Release files are:
 
-- `campuscore-api-v0.2.0.tar.gz`;
-- `campuscore-web-v0.2.0.tar.gz`;
-- `campuscore-companion-v0.2.0.zip`;
-- `migrations.sql`;
-- `VERSION`;
-- `SHA256SUMS.txt`.
+- `campuscore-api-v1.0.0-win-x64.zip` (self-contained Windows x64 **server** executable);
+- `campuscore-api-v1.0.0-linux-x64.tar.gz` (self-contained Linux x64 **server** executable);
+- `campuscore-api-v1.0.0-osx-arm64.tar.gz` (self-contained Apple Silicon macOS **server** executable);
+- `campuscore-api-v1.0.0.tar.gz` (.NET framework-dependent API package);
+- `campuscore-web-v1.0.0.tar.gz` (static Web/PWA bundle);
+- `campuscore-companion-v1.0.0.zip` (unpublished Chromium companion);
+- `campuscore-android-v1.0.0-debug-TEST-ONLY.apk` (**not signed for Play; example HTTPS API endpoint; verification use only**);
+- `migrations.sql`, `VERSION`, and `SHA256SUMS.txt`.
 
-The checksum file covers all downloadable application archives plus `migrations.sql` and `VERSION`.
+The public checksum file covers all archives, the test APK, migrations, and VERSION. The self-contained binaries are API **servers**, not standalone desktop applications; they still require a securely configured PostgreSQL database and deployment environment. Android debug builds point at the deliberately non-production `https://api.example.test` origin and cannot be distributed as functioning production apps. A signed AAB requires the deployment owner's private signing key and the production API HTTPS endpoint; neither is embedded in source or release assets.
 
-The release workflow also regenerates the Android project and assembles a debug APK as a short-lived **workflow verification artifact**. That APK is not attached to the public GitHub Release and must not be presented as a signed production Android build.
+### Automatic gated tag and release publication
 
-A Play-distributable Android App Bundle requires deployment-owner signing configuration and credentials. Those credentials are intentionally outside Git.
+The release workflow runs on a `main` commit whose subject starts with `chore(release): finalize v1.0.0`. It validates the version and builds all packages from that exact commit. It then requires **success** for the same commit's CI, CodeQL, Deployment Smoke, Full-stack E2E, Performance Budget, Android, and Version Consistency workflows. If any fails, **no tag or public GitHub Release is created**. On success it makes an annotated `v1.0.0` tag with `sanskarin@outlook.in` as the tagging email and uploads the assets using GitHub CLI. The workflow also accepts a manually pushed matching `v*` tag, but creating a tag manually bypasses the pre-tag cross-workflow gate. Maintainers should use the gated main-branch path.
 
-Container registries may be added later, but images must use immutable version tags in addition to any moving convenience tag.
+When updating version files, check that the Web package, browser companion, assembly versions, Compose defaults, and environment templates agree with `VERSION`, and add matching release notes in `docs/releases/` before the finalization commit.
 
 ## Android release gate
 
@@ -202,17 +204,7 @@ The current companion is navigation-only and storage-only by design.
 
 Only tag a commit after the release-candidate checks pass.
 
-For the prepared v0.2.0 candidate:
-
-```bash
-node scripts/verify-version.mjs --tag v0.2.0
-git tag -s v0.2.0 -m "CampusCore v0.2.0"
-git push origin v0.2.0
-```
-
-Do not create the tag while required checks are pending or failing.
-
-If signed tags are not available in the release environment, use the repository's approved signing policy and record the exception.
+For v1.0.0 prefer the automatically gated workflow described above rather than a manual tag. When checks have passed, a commit with subject `chore(release): finalize v1.0.0` triggers the verified build and, after all required checks succeed, creates the tag and public release. Never tag a failing commit or move an existing immutable release tag. Confirm the GitHub Release assets and SHA-256 checksums after publishing.
 
 ## Smoke-test checklist
 
@@ -269,14 +261,14 @@ Release notes should include:
 - contributor acknowledgements when appropriate;
 - support and responsible-disclosure links.
 
-The prepared v0.2.0 notes live in `docs/releases/v0.2.0.md`.
+The prepared v1.0.0 notes live in `docs/releases/v1.0.0.md`.
 
 ## Post-release
 
 After a successful release:
 
-- change the v0.2.0 changelog marker from release-candidate status to the actual release date;
-- create a fresh `[Unreleased]` section for post-v0.2.0 work;
+- confirm the v1.0.0 changelog section matches the actual release date;
+- maintain a fresh `[Unreleased]` section for post-v1.0.0 work;
 - move completed roadmap items as needed;
 - update `what_changed.md` with the tag, commit, verification evidence, and next milestone;
 - verify GitHub release artifacts are downloadable and checksums match;
