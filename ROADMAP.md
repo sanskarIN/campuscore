@@ -1,6 +1,6 @@
 # Roadmap
 
-CampusCore is preparing **v1.0.0** as the first stable self-hosted distribution. The root `VERSION` is authoritative; the first stable public tag and release are created only after all required checks pass.
+CampusCore **v1.0.0** was released on October 15, 2026 as the first stable self-hosted distribution: https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0. The root `VERSION` remains authoritative; its tagged release passed all required checks.
 
 ## Completed foundations included in v1.0.0
 
@@ -57,8 +57,8 @@ CampusCore is preparing **v1.0.0** as the first stable self-hosted distribution.
 - [x] Add integrity hashes, migration SQL and documented executable/server installation boundaries.
 - [x] Include a clearly marked Android debug **test-only** APK in release assets.
 - [x] Gate automated tagging and GitHub Release creation on successful same-commit quality and security workflows.
-- [ ] Confirm every required workflow passed on the final v1.0.0 source revision.
-- [ ] Confirm public tag, Release assets and hashes were actually published.
+- [x] Confirm all seven required workflows passed on tagged v1.0.0 revision `3bf2545e`.
+- [x] Confirm annotated public tag `v1.0.0`, stable GitHub Release, ten nonempty assets and SHA-256 digests (2026-10-15).
 
 ## After v1.0.0 — Future distribution enhancements
 
