@@ -8,6 +8,11 @@ on:
 
 permissions:
   contents: write
+  actions: read
+
+concurrency:
+  group: campuscore-release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   package:
