@@ -1,18 +1,30 @@
 # CampusCore — v1.0.0 Release Handoff
 
+## Latest status: Rebuilt v1.0.0 replacement VERIFIED — October 15, 2026
+
+- **New official release:** https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0
+- **Release publication:** 2026-10-15T09:11:39Z, new release ID `413613709` (the original release ID `413565340` was deleted).
+- **New annotated tag:** `v1.0.0` resolves to verified Git commit `aa506acd974cfd740d7d2be3d5be963d5dc9279e`; tag author `Sanskar <sanskarin@outlook.in>` (tagged 2026-10-15T09:11:31Z).
+- **Eight successful workflows on the tag commit:** CI, CodeQL, Deployment Smoke, Full-stack E2E, Performance Budget, Android, Version Consistency, Release.
+- **Successful replacement release workflow:** https://github.com/sanskarIN/campuscore/actions/runs/38710674745.
+- **Artifacts:** 10 newly generated nonempty downloadable files, each with a GitHub SHA-256 digest: Windows x64, Linux x64 and Apple Silicon macOS API servers; framework-dependent API, Web/PWA, companion, test-only Android APK, `migrations.sql`, `SHA256SUMS.txt` and `VERSION`.
+- **Source/product audit:** Release workflow's `Audit retired support and donation references` passed. Built Web/PWA validated it contains `https://buymeacoffee.com/SanskarCodes` and excludes retired contact and funding URLs.
+- **Action for previous downloaders:** The user-requested replacement of the already-public v1.0.0 tag and assets invalidates the original v1.0.0 archive hashes. Redownload and recheck the new `SHA256SUMS.txt`.
+- **Limitations unchanged:** Executables are server programs requiring configured PostgreSQL; Android APK is debug/test-only with an example HTTPS API URL, not a Google Play production build.
+
 ## Post-publication Buy Me a Coffee correction — 2026-10-15
 
 - **Current official Buy Me a Coffee link:** https://buymeacoffee.com/SanskarCodes (replaces the earlier sanskarIN path).
 - Updated `.github/FUNDING.yml`, the README badge and contact link, `SUPPORT.md`, and the Web/PWA About page source `src/CampusCore.Web/src/pages/AboutPage.tsx`.
 - Updated `docs/releases/v1.0.0.md` and synced those notes into the **existing, published** v1.0.0 GitHub Release: https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0.
 - Verified the GitHub Actions **Published Release Notes Sync** completed successfully: https://github.com/sanskarIN/campuscore/actions/runs/38708193916.
-- Following the author's new request, the GitHub Actions release workflow is being updated to **rebuild and replace** the v1.0.0 release, tag, downloadable assets and checksum manifest, but only after all seven same-commit checks pass and the rebuilt archives pass integrity verification.
+- The author-requested replacement has completed: all seven same-commit checks and rebuilt archive integrity validation passed before replacing the tag, release and ten downloadable assets.
 - Removed the retired support mailbox from the current README, SUPPORT.md, SECURITY.md, CODE_OF_CONDUCT.md, About page, and v1.0.0 release notes. Confidential reports to the security/conduct team use the business email until a new private contact channel is provided.
-- **Replacement verification status:** Not yet verified at the time of this source update. Never describe the v1.0.0 assets as replaced until the GitHub Release and its new tag commit are independently confirmed.
+- **Replacement verification status: CONFIRMED** via the published release API, new annotated tag target, new file digests and completed release workflow.
 - Because the same version tag will point to a newly built revision, anyone who downloaded the original v1.0.0 assets must redownload and validate the new SHA-256 checksums.
 - Changes to this project were pushed on main in focused commits, authored and committed by Sanskar <sanskarin@outlook.in>.
 
-## Official v1.0.0 publication — verified
+## Original v1.0.0 publication — verified historical record, superseded by replacement
 
 **Status: PUBLISHED — 2026-10-15.**
 
