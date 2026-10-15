@@ -1,5 +1,12 @@
 # CampusCore — v1.0.0 Release Handoff
 
+## Final v1.0.0 release blocker addressed (2026-10-15)
+
+The last reviewed candidate `f5451efa` passed six mandatory gates (CI, CodeQL, Deployment Smoke, Performance Budget, Android, Version Consistency). Full-stack E2E alone failed due to a Playwright strict selector collision while an announcements loading indicator and a success notice simultaneously carried the `status` role. The real API had successfully published the announcement. Fixed the test to target exact success copy for both announcement publication and institution-settings updates. Disabled automatic retries for the one stateful real-stack acceptance test, whose first administrator setup cannot be repeated against the same persistent CI test database without cleanup. Updated its synthetic fixture labels to v1.0.0.
+
+The finalization workflow must still prove that all seven mandatory checks and all release-build steps pass on the new final source commit before the tag and public GitHub Release can be considered successful.
+
+
 Last updated: 2026-10-15 (Asia/Kolkata)
 Target: v1.0.0 first stable self-hosted distribution
 Repository: https://github.com/sanskarIN/campuscore
