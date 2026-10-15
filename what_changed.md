@@ -1,5 +1,14 @@
 # CampusCore — v1.0.0 Release Handoff
 
+## Post-publication Buy Me a Coffee correction — 2026-10-15
+
+- **Current official Buy Me a Coffee link:** https://buymeacoffee.com/SanskarCodes (replaces the earlier sanskarIN path).
+- Updated `.github/FUNDING.yml`, the README badge and contact link, `SUPPORT.md`, and the Web/PWA About page source `src/CampusCore.Web/src/pages/AboutPage.tsx`.
+- Updated `docs/releases/v1.0.0.md` and synced those notes into the **existing, published** v1.0.0 GitHub Release: https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0.
+- Verified the GitHub Actions **Published Release Notes Sync** completed successfully: https://github.com/sanskarIN/campuscore/actions/runs/38708193916.
+- The published release still lists its ten original downloadable assets. Its annotated tag, packaged executables, APK, and SHA-256 file have **not** been rewritten. The original Web/Android v1.0.0 client binaries may still display the previous in-app donation link; a future rebuilt release will pick up the corrected source code.
+- Changes to this project were pushed on main in focused commits, authored and committed by Sanskar <sanskarin@outlook.in>.
+
 ## Official v1.0.0 publication — verified
 
 **Status: PUBLISHED — 2026-10-15.**
