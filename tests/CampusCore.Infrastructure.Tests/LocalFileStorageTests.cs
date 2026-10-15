@@ -59,7 +59,7 @@ public sealed class LocalFileStorageTests
         Assert.IsNull(reopened);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("../outside.txt")]
     [DataRow("folder/file.txt")]
     [DataRow("folder\\file.txt")]
@@ -73,7 +73,7 @@ public sealed class LocalFileStorageTests
         });
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(".tar/gz")]
     [DataRow(".way-too-long-extension")]
     [DataRow(".pdf?")]
