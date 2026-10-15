@@ -1,8 +1,8 @@
 # Roadmap
 
-CampusCore is currently preparing **v0.2.0**. A root `VERSION` file is the release version source of truth; the public tag is created only after release-candidate verification succeeds.
+CampusCore is preparing **v1.0.0** as the first stable self-hosted distribution. The root `VERSION` is authoritative; the first stable public tag and release are created only after all required checks pass.
 
-## Completed foundations included in v0.2.0
+## Completed foundations included in v1.0.0
 
 ### Foundation and core data
 - [x] Modular Domain → Application → Infrastructure → API architecture.
@@ -42,46 +42,33 @@ CampusCore is currently preparing **v0.2.0**. A root `VERSION` file is the relea
 - [x] Chromium Manifest V3 CampusCore Companion with storage-only permission.
 - [x] Companion route shortcuts, settings UI, URL policy validation, version-alignment validation, and packaging CI.
 
-### v0.2.0 release preparation
-- [x] Repository-wide `VERSION` source set to `0.2.0`.
+### v1.0.0 release preparation
+- [x] Release version alignment gate; `VERSION` is promoted to `1.0.0` for the stable candidate.
 - [x] .NET, Web/PWA, Compose, environment sample, and extension versions aligned.
 - [x] Automated version-consistency workflow including .NET assembly/file versions and browser-manifest syntax.
 - [x] Release workflow rejects mismatched tags and components.
 - [x] Release workflow packages migration SQL, version manifest, checksums, API, Web/PWA, and companion artifacts.
 - [x] Tagged Web/PWA archive uses same-origin API routing and passes a release-asset safety check before packaging.
-- [x] v0.2.0 release-candidate changelog, testing documentation, and release notes prepared.
+- [x] v1.0.0 release-candidate changelog, testing documentation, and release notes prepared.
 
-## Remaining blockers before tag v0.2.0
+## v1.0.0 — Stable self-hosted distribution
 
-- [ ] Confirm the complete required GitHub Actions set is green for the final candidate commit, including the newly added real full-stack browser workflow.
-- [ ] Fix any failures surfaced by E2E, accessibility, migration, recovery, deployment, Android, extension, performance, version, or release-asset gates.
-- [ ] Generate and review npm lockfiles when registry access is available, then move Node clean/release installs to `npm ci`.
-- [ ] Capture representative release screenshots from a verified deployed candidate if screenshots are part of the v0.2.0 release requirement.
-- [ ] Perform the final secrets, permissions, workflow, and production-configuration review before creating the tag.
+- [x] Prepare cross-platform API server binary packages (Windows x64, Linux x64, macOS arm64) plus Web/PWA and browser companion archives.
+- [x] Add integrity hashes, migration SQL and documented executable/server installation boundaries.
+- [x] Include a clearly marked Android debug **test-only** APK in release assets.
+- [x] Gate automated tagging and GitHub Release creation on successful same-commit quality and security workflows.
+- [ ] Confirm every required workflow passed on the final v1.0.0 source revision.
+- [ ] Confirm public tag, Release assets and hashes were actually published.
 
-## v0.3.0 — Distribution readiness
+## After v1.0.0 — Future distribution enhancements
 
-- [ ] Add deployment-owner Android release-signing integration using protected secrets.
-- [ ] Produce and verify a signed Android App Bundle (AAB) from tagged source.
-- [ ] Add Android versionCode/versionName automation suitable for store upgrades.
-- [ ] Add representative physical-device/emulator smoke coverage for signed candidates.
-- [ ] Add final browser companion icons/branding assets and store-listing metadata.
-- [ ] Complete Chrome Web Store / Edge Add-ons privacy, permission, screenshot, and publication review.
-- [ ] Add release provenance/attestation improvements for downloadable artifacts and future container images.
+- [ ] Configure Android AAB production signing via a protected owner-managed keystore and real HTTPS API endpoint.
+- [ ] Verify signed Android updates on representative physical devices/emulators before Play Store distribution.
+- [ ] Complete companion Chromium/Edge store branding, assets, listing disclosures and approval.
+- [ ] Review and commit npm lockfiles and upgrade CI to reproducible `npm ci`.
+- [ ] Add signed provenance/attestations for release artifacts and immutable container images.
+- [ ] Expand backup/restore rehearsal across prior-version migrations and deployment models.
+- [ ] Improve external PostgreSQL, object storage, monitoring, scale, and performance references.
+- [ ] Add operating-system/runtime variants based on validated user demand.
 
-## v0.4.0 — Deployment and scale hardening
-
-- [ ] Exercise upgrades from a real previous-version database as the migration history grows.
-- [ ] Add production-oriented external PostgreSQL/object-storage deployment examples.
-- [ ] Add observability guidance/integration for metrics, traces, structured logs, and alerting.
-- [ ] Add capacity/load baselines for search, reporting, attachment, and bulk workflows.
-- [ ] Review horizontal-scaling requirements and single-writer migration coordination.
-
-## 1.0.0 — Stable production release
-
-- [ ] Complete all blocker-level security, privacy, accessibility, recovery, and upgrade audits.
-- [ ] Provide stable deployment/upgrade support expectations and compatibility policy.
-- [ ] Publish fully verified Web/PWA release artifacts and supported native/store packages.
-- [ ] Confirm release documentation, screenshots, checksums/provenance, support channels, and rollback procedures.
-
-See `what_changed.md` for the current exact repository state, recent commits, verification evidence, and the next executable tasks.
+See `what_changed.md` for the latest verification results, current release blockers and next engineering steps.
