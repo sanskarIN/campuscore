@@ -10,7 +10,7 @@
 
 **Made by the Sanskar**
 
-**Current stable release:** [CampusCore v1.0.0](https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0) (published October 15, 2026). All seven required verification workflows and the release workflow passed for tag commit `3bf2545e`. The release includes downloadable Windows x64, Linux x64, and macOS Apple Silicon API server executables, a Web/PWA archive, a browser companion, a debug-only Android test APK, SQL migrations, and SHA-256 checksums. The root [`VERSION`](VERSION) file remains the source of truth.
+**Current stable release:** [CampusCore v1.0.0](https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0) (published October 15, 2026). The release workflow requires same-commit verification and packages cross-platform artifacts. The release includes downloadable Windows x64, Linux x64, and macOS Apple Silicon API server executables, a Web/PWA archive, a browser companion, a debug-only Android test APK, SQL migrations, and SHA-256 checksums. The root [`VERSION`](VERSION) file remains the source of truth.
 
 ## Why CampusCore
 
@@ -184,7 +184,6 @@ MIT — see [`LICENSE`](LICENSE).
 
 - Business: [sanskarin@outlook.in](mailto:sanskarin@outlook.in)
 - Business: [sanskarin.business@gmail.com](mailto:sanskarin.business@gmail.com)
-- Support: [supportramsandesh@gmail.com](mailto:supportramsandesh@gmail.com)
 - GitHub: <https://github.com/sanskarIN>
 - Buy Me a Coffee: <https://buymeacoffee.com/SanskarCodes>
 
