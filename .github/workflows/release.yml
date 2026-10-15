@@ -101,7 +101,7 @@ jobs:
         run: ./gradlew --no-daemon assembleDebug
 
       - name: Upload Android verification APK
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: campuscore-android-verification-${{ github.ref_name }}
           path: src/CampusCore.Web/android/app/build/outputs/apk/debug/app-debug.apk
@@ -116,7 +116,7 @@ jobs:
         run: sha256sum *.tar.gz *.zip migrations.sql VERSION > SHA256SUMS.txt
 
       - name: Upload workflow artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: campuscore-${{ github.ref_name }}
           path: |

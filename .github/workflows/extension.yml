@@ -49,7 +49,7 @@ jobs:
             -x '*.DS_Store'
 
       - name: Upload extension package
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: campuscore-companion
           path: artifacts/campuscore-companion.zip

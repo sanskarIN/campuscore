@@ -75,7 +75,7 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Upload web artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: campuscore-web
           path: src/CampusCore.Web/dist
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: campuscore-playwright-report
           path: src/CampusCore.Web/playwright-report
@@ -117,7 +117,7 @@ jobs:
 
       - name: Upload browser traces on failure
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: campuscore-playwright-results
           path: src/CampusCore.Web/test-results
