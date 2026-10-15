@@ -6,7 +6,7 @@
 [![Android](https://github.com/sanskarIN/campuscore/actions/workflows/android.yml/badge.svg)](https://github.com/sanskarIN/campuscore/actions/workflows/android.yml)
 [![Browser extension](https://github.com/sanskarIN/campuscore/actions/workflows/extension.yml/badge.svg)](https://github.com/sanskarIN/campuscore/actions/workflows/extension.yml)
 [![CodeQL](https://github.com/sanskarIN/campuscore/actions/workflows/codeql.yml/badge.svg)](https://github.com/sanskarIN/campuscore/actions/workflows/codeql.yml)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-sanskarIN-FFDD00?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/sanskarIN)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-SanskarCodes-FFDD00?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/SanskarCodes)
 
 **Made by the Sanskar**
 
@@ -186,6 +186,6 @@ MIT — see [`LICENSE`](LICENSE).
 - Business: [sanskarin.business@gmail.com](mailto:sanskarin.business@gmail.com)
 - Support: [supportramsandesh@gmail.com](mailto:supportramsandesh@gmail.com)
 - GitHub: <https://github.com/sanskarIN>
-- Buy Me a Coffee: <https://buymeacoffee.com/sanskarIN>
+- Buy Me a Coffee: <https://buymeacoffee.com/SanskarCodes>
 
 **Made by the Sanskar**
