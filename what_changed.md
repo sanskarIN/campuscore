@@ -6,7 +6,10 @@
 - Updated `.github/FUNDING.yml`, the README badge and contact link, `SUPPORT.md`, and the Web/PWA About page source `src/CampusCore.Web/src/pages/AboutPage.tsx`.
 - Updated `docs/releases/v1.0.0.md` and synced those notes into the **existing, published** v1.0.0 GitHub Release: https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0.
 - Verified the GitHub Actions **Published Release Notes Sync** completed successfully: https://github.com/sanskarIN/campuscore/actions/runs/38708193916.
-- The published release still lists its ten original downloadable assets. Its annotated tag, packaged executables, APK, and SHA-256 file have **not** been rewritten. The original Web/Android v1.0.0 client binaries may still display the previous in-app donation link; a future rebuilt release will pick up the corrected source code.
+- Following the author's new request, the GitHub Actions release workflow is being updated to **rebuild and replace** the v1.0.0 release, tag, downloadable assets and checksum manifest, but only after all seven same-commit checks pass and the rebuilt archives pass integrity verification.
+- Removed the retired support mailbox from the current README, SUPPORT.md, SECURITY.md, CODE_OF_CONDUCT.md, About page, and v1.0.0 release notes. Confidential reports to the security/conduct team use the business email until a new private contact channel is provided.
+- **Replacement verification status:** Not yet verified at the time of this source update. Never describe the v1.0.0 assets as replaced until the GitHub Release and its new tag commit are independently confirmed.
+- Because the same version tag will point to a newly built revision, anyone who downloaded the original v1.0.0 assets must redownload and validate the new SHA-256 checksums.
 - Changes to this project were pushed on main in focused commits, authored and committed by Sanskar <sanskarin@outlook.in>.
 
 ## Official v1.0.0 publication — verified
