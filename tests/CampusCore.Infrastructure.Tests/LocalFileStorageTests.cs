@@ -67,7 +67,7 @@ public sealed class LocalFileStorageTests
     [DataRow("   ")]
     public async Task OpenReadAsync_RejectsNonOpaqueStoredNames(string storedName)
     {
-        await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+        await Assert.ThrowsExactlyAsync<ArgumentException>(async () =>
         {
             await _storage.OpenReadAsync(storedName);
         });
@@ -81,7 +81,7 @@ public sealed class LocalFileStorageTests
     {
         await using var input = new MemoryStream([1]);
 
-        await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+        await Assert.ThrowsExactlyAsync<ArgumentException>(async () =>
         {
             await _storage.SaveAsync(input, extension);
         });
