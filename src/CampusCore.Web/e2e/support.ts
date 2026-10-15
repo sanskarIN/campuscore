@@ -48,7 +48,7 @@ export async function signIn(
   await page.goto('/login');
   await page.getByLabel('Email').fill('admin@example.test');
   await page.getByLabel('Password').fill('StrongPassword!123');
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 }
