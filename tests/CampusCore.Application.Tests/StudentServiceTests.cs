@@ -65,7 +65,7 @@ public sealed class StudentServiceTests
             null,
             null);
 
-        var exception = await Assert.ThrowsExceptionAsync<ArgumentException>(() => _service.CreateAsync(request, CancellationToken.None));
+        var exception = await Assert.ThrowsExactlyAsync<ArgumentException>(() => _service.CreateAsync(request, CancellationToken.None));
 
         Assert.AreEqual("Admission number is required.", exception.Message);
         Assert.AreEqual(0, await _db.Students.CountAsync());
@@ -85,7 +85,7 @@ public sealed class StudentServiceTests
 
         var request = new CreateStudentRequest("ADM-1", "New", "Student", new DateOnly(2012, 1, 1), null, null, null);
 
-        var exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => _service.CreateAsync(request, CancellationToken.None));
+        var exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => _service.CreateAsync(request, CancellationToken.None));
 
         Assert.AreEqual("Admission number already exists.", exception.Message);
         Assert.AreEqual(1, await _db.Students.CountAsync());
@@ -94,7 +94,7 @@ public sealed class StudentServiceTests
     [TestMethod]
     public async Task SearchAsync_RejectsResourceExhaustingQueryLength()
     {
-        var exception = await Assert.ThrowsExceptionAsync<ArgumentException>(() =>
+        var exception = await Assert.ThrowsExactlyAsync<ArgumentException>(() =>
             _service.SearchAsync(new string('x', 121), null, null, 1, 25, CancellationToken.None));
 
         Assert.AreEqual("Search query cannot exceed 120 characters.", exception.Message);
@@ -151,7 +151,7 @@ public sealed class StudentServiceTests
         _db.Students.Add(student);
         await _db.SaveChangesAsync();
 
-        var exception = await Assert.ThrowsExceptionAsync<ArgumentException>(() => _service.AddGuardianAsync(
+        var exception = await Assert.ThrowsExactlyAsync<ArgumentException>(() => _service.AddGuardianAsync(
             student.Id,
             new UpsertGuardianRequest(new string('x', 201), "Parent", null, null, false),
             CancellationToken.None));
