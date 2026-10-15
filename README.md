@@ -8,9 +8,9 @@
 [![CodeQL](https://github.com/sanskarIN/campuscore/actions/workflows/codeql.yml/badge.svg)](https://github.com/sanskarIN/campuscore/actions/workflows/codeql.yml)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-SanskarCodes-FFDD00?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/SanskarCodes)
 
-**Made by the Sanskar**
+**Made by the Sanskar** · [Website](https://sanskarin.github.io)
 
-**Current stable release:** [CampusCore v1.0.0](https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0) (published October 15, 2026). The corrected release was rebuilt and republished on October 15, 2026 from verified commit [`aa506acd`](https://github.com/sanskarIN/campuscore/commit/aa506acd974cfd740d7d2be3d5be963d5dc9279e); all seven required checks and the Release workflow passed. Download the current archives and use their current SHA-256 checksums, as the first publication of this version was replaced. The release includes downloadable Windows x64, Linux x64, and macOS Apple Silicon API server executables, a Web/PWA archive, a browser companion, a debug-only Android test APK, SQL migrations, and SHA-256 checksums. The root [`VERSION`](VERSION) file remains the source of truth.
+**Current stable release:** [CampusCore v1.0.0](https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0). Download the current GitHub release archives and verify their SHA-256 checksums. Available distributions include Windows x64, Linux x64, and Apple Silicon macOS **API server executables**, the Web/PWA, browser companion, an Android **debug/test-only** APK, migration SQL, and integrity manifests. The API executables are server processes, not standalone desktop GUIs. The root [`VERSION`](VERSION) remains the source of truth.
 
 ## Why CampusCore
 
@@ -185,6 +185,7 @@ MIT — see [`LICENSE`](LICENSE).
 - Business: [sanskarin@outlook.in](mailto:sanskarin@outlook.in)
 - Business: [sanskarin.business@gmail.com](mailto:sanskarin.business@gmail.com)
 - GitHub: <https://github.com/sanskarIN>
+- Website: <https://sanskarin.github.io>
 - Buy Me a Coffee: <https://buymeacoffee.com/SanskarCodes>
 
 **Made by the Sanskar**
