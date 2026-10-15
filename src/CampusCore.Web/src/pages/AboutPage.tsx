@@ -3,7 +3,6 @@ import { environment } from '../env';
 const contacts = [
   { label: 'Business', value: 'sanskarin@outlook.in', href: 'mailto:sanskarin@outlook.in' },
   { label: 'Business', value: 'sanskarin.business@gmail.com', href: 'mailto:sanskarin.business@gmail.com' },
-  { label: 'Support', value: 'supportramsandesh@gmail.com', href: 'mailto:supportramsandesh@gmail.com' },
 ];
 
 export function AboutPage() {
