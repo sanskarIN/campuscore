@@ -249,6 +249,10 @@ jobs:
           set -euo pipefail
           mapfile -t assets < <(find artifacts -maxdepth 1 -type f -print | sort)
           test "${#assets[@]}" -ge 9
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "GitHub Release ${RELEASE_TAG} already exists; leaving the published release immutable."
+            exit 0
+          fi
           gh release create "${RELEASE_TAG}" "${assets[@]}" \
             --verify-tag \
             --notes-file "docs/releases/${RELEASE_TAG}.md" \
