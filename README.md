@@ -10,7 +10,7 @@
 
 **Made by the Sanskar**
 
-**Target version:** `1.0.0` stable. GitHub Actions publishes the `v1.0.0` release with platform-specific server binaries and other downloadable assets **only after required validation succeeds**. The root [`VERSION`](VERSION) file is the source of truth.
+**Current stable release:** [CampusCore v1.0.0](https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0) (published October 15, 2026). All seven required verification workflows and the release workflow passed for tag commit `3bf2545e`. The release includes downloadable Windows x64, Linux x64, and macOS Apple Silicon API server executables, a Web/PWA archive, a browser companion, a debug-only Android test APK, SQL migrations, and SHA-256 checksums. The root [`VERSION`](VERSION) file remains the source of truth.
 
 ## Why CampusCore
 
