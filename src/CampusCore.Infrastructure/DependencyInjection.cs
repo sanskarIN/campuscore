@@ -17,7 +17,7 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("Database")
             ?? throw new InvalidOperationException("ConnectionStrings:Database is required.");
 
-        services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", "public")));
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
         services.AddScoped<IAuditWriter, AuditWriter>();
         services.AddScoped<DatabaseInitializer>();
