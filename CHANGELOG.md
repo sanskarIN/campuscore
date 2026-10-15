@@ -4,6 +4,10 @@ All notable changes are documented here. The project follows Keep a Changelog co
 
 ## [Unreleased]
 
+### Maintenance after v1.0.0 publication (2026-10-15)
+- Corrected the optional Buy Me a Coffee destination to https://buymeacoffee.com/SanskarCodes in repository funding, README, SUPPORT.md, the Web/PWA About page source, and the published GitHub Release notes.
+- Kept the v1.0.0 release tag and original ten integrity-checked assets untouched; the corrected About-page destination will ship in a rebuilt version.
+
 ### Planned
 - Production Android App Bundle signing and Play Store configuration after the deployment owner supplies a secure keystore and production HTTPS API URL.
 - Browser companion publishing workflow, store branding, and listings.
