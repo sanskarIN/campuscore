@@ -18,7 +18,7 @@ public static class CatalogEndpoints
     {
         var group = endpoints.MapGroup("/api/catalog").WithTags("Catalog").RequireAuthorization();
         group.MapGet("/academic-years", async (IApplicationDbContext db, CancellationToken ct) => Results.Ok(await db.AcademicYears.AsNoTracking().OrderByDescending(x => x.StartsOn).ToListAsync(ct)));
-        group.MapGet("/classes", async (IApplicationDbContext db, CancellationToken ct) => Results.Ok(await db.SchoolClasses.AsNoTracking().Include(x => x.Sections).OrderBy(x => x.SortOrder).ToListAsync(ct)));
+        group.MapGet("/classes", async (IApplicationDbContext db, CancellationToken ct) => Results.Ok(await db.SchoolClasses.AsNoTracking().OrderBy(x => x.SortOrder).Select(x => new { x.Id, x.Name, x.SortOrder, Sections = x.Sections.OrderBy(s => s.Name).Select(s => new { s.Id, s.SchoolClassId, s.Name, s.Capacity }).ToList() }).ToListAsync(ct)));
         group.MapGet("/subjects", async (IApplicationDbContext db, CancellationToken ct) => Results.Ok(await db.Subjects.AsNoTracking().OrderBy(x => x.Name).ToListAsync(ct)));
         group.MapGet("/grade-scales", async (string? name, IApplicationDbContext db, CancellationToken ct) =>
         {
