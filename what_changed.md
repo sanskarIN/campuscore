@@ -1,5 +1,23 @@
 # CampusCore — v1.0.0 Release Handoff
 
+## Official v1.0.0 publication — verified
+
+**Status: PUBLISHED — 2026-10-15.**
+
+- Public GitHub Release: https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0
+- Release title: `CampusCore v1.0.0`; not a draft or prerelease.
+- Annotated tag `v1.0.0` points to exact commit `3bf2545e0e035678fdc17006000649b004c7a979`.
+- Tagger: `Sanskar <sanskarin@outlook.in>`; created 2026-10-15T08:16:04Z.
+- Release published 2026-10-15T08:16:10Z.
+- All checks **SUCCESS** for release commit: CI, CodeQL, Deployment Smoke, Full-stack E2E, Performance Budget, Android, Version Consistency, and Release.
+- GitHub verified **10 attached nonempty assets** with SHA-256 digests: Windows x64 API server ZIP, Linux x64 API server archive, Apple Silicon API server archive, framework-dependent API archive, Web/PWA archive, browser companion ZIP, Android **debug/test-only** APK, idempotent SQL migration script, VERSION, and SHA256SUMS.txt.
+- GitHub Actions release packaging also validated archive integrity and all SHA-256 checksums before publication.
+- Product-specific deployment limitations remain as documented: self-hosted backend/database, non-store-signed Android test APK with placeholder API URL, and a browser companion not yet published to a store.
+- Post-release status updated in README.md and ROADMAP.md, each with focused commits.
+
+The sections below retain engineering and verification history from the v1.0.0 release preparation. Their earlier "pending release" notes reflect *intermediate* revisions and are superseded by the verified publication above.
+
+
 ## Final v1.0.0 release blocker addressed (2026-10-15)
 
 The last reviewed candidate `f5451efa` passed six mandatory gates (CI, CodeQL, Deployment Smoke, Performance Budget, Android, Version Consistency). Full-stack E2E alone failed due to a Playwright strict selector collision while an announcements loading indicator and a success notice simultaneously carried the `status` role. The real API had successfully published the announcement. Fixed the test to target exact success copy for both announcement publication and institution-settings updates. Disabled automatic retries for the one stateful real-stack acceptance test, whose first administrator setup cannot be repeated against the same persistent CI test database without cleanup. Updated its synthetic fixture labels to v1.0.0.
