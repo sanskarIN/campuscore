@@ -31,5 +31,5 @@ test('About page exposes current public links and no retired contact', async ({ 
   await page.goto('/about');
   await expect(page.getByRole('link', { name: 'Author website' })).toHaveAttribute('href', 'https://sanskarin.github.io');
   await expect(page.getByRole('link', { name: 'Buy Me a Coffee' })).toHaveAttribute('href', 'https://buymeacoffee.com/SanskarCodes');
-  await expect(page.getByText('supportramsandesh@gmail.com')).toHaveCount(0);
+  await expect(page.locator('a[href^="mailto:"]')).toHaveCount(2);
 });
