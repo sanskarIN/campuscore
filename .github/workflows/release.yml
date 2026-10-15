@@ -1,5 +1,8 @@
 name: Release
 
+# Explicit author-requested v1.0.0 replacement: rebuild and verify all packages
+# before deleting the previously published release or moving its tag.
+
 on:
   push:
     branches: [main]
