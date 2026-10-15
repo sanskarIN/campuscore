@@ -1,5 +1,15 @@
 # CampusCore — v1.0.0 Release Handoff
 
+## Final v1.0.0 author-website release — final quality gate
+
+- Requested website: https://sanskarin.github.io (portfolio and author website, **not** the CampusCore API backend).
+- Updated project README, support guide, v1.0.0 release description, and in-app About page; the same React UI is included in the Capacitor Android debug/test APK.
+- The official optional donation URL remains https://buymeacoffee.com/SanskarCodes; the retired support mailbox remains absent from all public UI and documentation.
+- Added a Playwright regression that checks About-page website/BMC links and the two active business contacts.
+- Release workflow audits tracked files and built Web/PWA assets for public links and the retired mailbox, assembles .NET API servers, Web/PWA, browser companion and Android test APK, generates SQL and checksums, then gates publication on seven same-commit workflow successes.
+- For this **explicitly requested final v1.0.0 replacement**, the old tag, release and downloads stay public until all packages and checks pass. Only then can GitHub Actions replace the old release and reattach newly verified assets.
+- Status at documentation time: **Final rebuild not yet confirmed published**. Check the resulting Release workflow run and GitHub Release API before claiming that this specific final build is complete.
+
 ## Latest status: Rebuilt v1.0.0 replacement VERIFIED — October 15, 2026
 
 - **New official release:** https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0
