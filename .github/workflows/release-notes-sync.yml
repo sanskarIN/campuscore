@@ -1,0 +1,51 @@
+name: Published Release Notes Sync
+
+# Update only the text of the already published v1.0.0 release.
+# Never rebuild or replace tagged binaries, checksums, or the v1.0.0 tag here.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/releases/v1.0.0.md'
+      - '.github/workflows/release-notes-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: campuscore-v1.0.0-release-notes
+  cancel-in-progress: false
+
+jobs:
+  sync-release-notes:
+    name: Sync published v1.0.0 release description
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout current documentation
+        uses: actions/checkout@v7
+
+      - name: Validate published stable release and document
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(cat VERSION)" = "1.0.0"
+          test -s docs/releases/v1.0.0.md
+          state="$(gh release view v1.0.0 --json isDraft,isPrerelease --jq '[.isDraft, .isPrerelease] | join(",")')"
+          if [[ "$state" != "false,false" ]]; then
+            echo "::error::v1.0.0 must be an already published, stable GitHub Release."
+            exit 1
+          fi
+
+      - name: Update release description without touching assets or tag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release edit v1.0.0 --notes-file docs/releases/v1.0.0.md
+          gh release view v1.0.0 --json body --jq .body | grep -F 'https://buymeacoffee.com/SanskarCodes'
+          echo "Updated published release notes; tagged binaries and SHA-256 sums remain unchanged."
