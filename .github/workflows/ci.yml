@@ -191,7 +191,7 @@ jobs:
         run: |
           set -euo pipefail
           before="$(docker compose exec -T postgres psql --username campuscore --dbname campuscore --tuples-only --no-align --command 'SELECT COUNT(*) FROM "__EFMigrationsHistory";' | tr -d '\r')"
-          docker compose restart api
+          docker compose stop api
           docker compose up -d api --wait --wait-timeout 180
           after="$(docker compose exec -T postgres psql --username campuscore --dbname campuscore --tuples-only --no-align --command 'SELECT COUNT(*) FROM "__EFMigrationsHistory";' | tr -d '\r')"
           test "$after" = "$before"
