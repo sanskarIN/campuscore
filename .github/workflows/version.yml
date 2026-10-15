@@ -15,6 +15,7 @@ on:
       - 'src/CampusCore.Extension/package.json'
       - 'src/CampusCore.Extension/manifest.json'
       - 'scripts/verify-version.mjs'
+      - '.github/workflows/release.yml'
       - '.github/workflows/version.yml'
   pull_request:
     branches: [main]
@@ -30,6 +31,7 @@ on:
       - 'src/CampusCore.Extension/package.json'
       - 'src/CampusCore.Extension/manifest.json'
       - 'scripts/verify-version.mjs'
+      - '.github/workflows/release.yml'
       - '.github/workflows/version.yml'
 
 permissions:
