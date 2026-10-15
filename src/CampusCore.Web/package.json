@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
-    "@capacitor/android": "8.5.0",
+    "@capacitor/android": "8.5.1",
     "@capacitor/cli": "8.5.0",
     "@eslint/js": "10.8.1",
     "@playwright/test": "1.62.1",
