@@ -17,10 +17,11 @@ public static class CommunicationEndpoints
         group.MapGet("/", async (IApplicationDbContext db, CancellationToken ct) =>
         {
             var now = DateTimeOffset.UtcNow;
-            return Results.Ok(await db.Announcements.AsNoTracking().Include(x => x.Attachments)
+            return Results.Ok(await db.Announcements.AsNoTracking()
                 .Where(x => x.PublishAtUtc <= now && (x.ExpiresAtUtc == null || x.ExpiresAtUtc > now))
                 .OrderByDescending(x => x.PublishAtUtc)
                 .Take(100)
+                .Select(x => new { x.Id, x.Title, x.Body, x.Audience, x.PublishAtUtc, x.ExpiresAtUtc, x.CreatedAtUtc, x.UpdatedAtUtc, Attachments = x.Attachments.Select(a => new { a.Id, a.AnnouncementId, a.FileName, a.ContentType, a.SizeBytes, a.CreatedAtUtc }).ToList() })
                 .ToListAsync(ct));
         });
         group.MapPost("/", async (AnnouncementRequest request, IApplicationDbContext db, IAuditWriter audit, CancellationToken ct) =>
