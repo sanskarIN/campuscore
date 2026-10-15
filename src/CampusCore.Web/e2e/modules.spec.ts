@@ -25,3 +25,11 @@ test('renders every primary application module for an administrator', async ({ p
     await expect(page.getByRole('alert')).toHaveCount(0);
   }
 });
+
+test('About page exposes current public links and no retired contact', async ({ page }) => {
+  await signIn(page);
+  await page.goto('/about');
+  await expect(page.getByRole('link', { name: 'Author website' })).toHaveAttribute('href', 'https://sanskarin.github.io');
+  await expect(page.getByRole('link', { name: 'Buy Me a Coffee' })).toHaveAttribute('href', 'https://buymeacoffee.com/SanskarCodes');
+  await expect(page.getByText('supportramsandesh@gmail.com')).toHaveCount(0);
+});
