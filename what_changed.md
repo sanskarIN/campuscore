@@ -1,5 +1,20 @@
 # CampusCore — v1.0.0 Release Handoff
 
+## Final v1.0.0 website-linked release — VERIFIED (2026-10-15)
+
+- **Published stable release:** https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0.
+- **New release ID:** `413624847`, published `2026-10-15T09:24:08Z`; the previously rebuilt release was replaced only after successful gate and package verification.
+- **Final annotated tag:** `v1.0.0`, annotated tag SHA `e734d8e40d648a8a789b5ad11bf0c892a4e3512b`, target commit `0429bdbc9b7b678ffa7b11de7aaee247436be764`, tagger Sanskar <sanskarin@outlook.in>.
+- **Release workflow:** https://github.com/sanskarIN/campuscore/actions/runs/38712020960 — completed **success**.
+- **All eight workflows on final tag commit were successful:** CI, CodeQL, Deployment Smoke, Full-stack E2E, Android, Performance Budget, Version Consistency, Release.
+- **Ten new nonempty downloadable files with SHA-256 digests:** self-contained Windows/Linux/macOS API servers, framework-dependent server archive, Web/PWA, Chromium companion, debug/test-only Android APK, migration SQL, checksum manifest and VERSION. Release job verified SHA-256 checksums and archive integrity before publication.
+- **Official website:** https://sanskarin.github.io, visible from the About page and mentioned in README, SUPPORT.md and published GitHub release description. This is a portfolio website **not** an API or hosted CampusCore server.
+- **Current optional donations:** https://buymeacoffee.com/SanskarCodes. The retired support mailbox has been removed from public Web/PWA UI and release docs. The built Web/PWA assets passed explicit website/BMC presence and retired-contact exclusion checks.
+- The Web/PWA About-page browser test passed in CI, including correct website/BMC hrefs and two active business email contacts.
+- **Do not reuse the tag:** After publication the release workflow was hardened to reject replacing existing versions. Any subsequent binary release must have a new VERSION, tag, and checksum manifest.
+- Earlier v1.0.0 downloads are superseded; redownload and verify the checksum manifest of the currently published artifacts.
+- **Limits:** API packages are server executables requiring PostgreSQL/configuration, Android debug APK uses an example API origin and is not a Play Store-ready signed application.
+
 ## Final v1.0.0 author-website release — final quality gate
 
 - Requested website: https://sanskarin.github.io (portfolio and author website, **not** the CampusCore API backend).
