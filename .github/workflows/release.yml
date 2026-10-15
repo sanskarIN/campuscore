@@ -167,6 +167,15 @@ jobs:
         working-directory: artifacts
         run: sha256sum *.tar.gz *.zip *.apk migrations.sql VERSION > SHA256SUMS.txt
 
+      - name: Verify package integrity before publishing
+        working-directory: artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum --check SHA256SUMS.txt
+          for archive in *.tar.gz; do tar -tzf "$archive" >/dev/null; done
+          for archive in *.zip; do unzip -tq "$archive" >/dev/null; done
+
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v7
         with:
