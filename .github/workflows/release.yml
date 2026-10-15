@@ -1,10 +1,9 @@
 name: Release
 
 # Release candidate: build all corrected public links before replacing v1.0.0.
-# One author-requested final v1.0.0 rebuild: package the updated website link
-# with the validated backend, Web/PWA and Android debug distribution.
-# The previous published v1.0.0 remains available until required workflow
-# gates and package/checksum validation have completed successfully.
+# v1.0.0 is published and must not be replaced again.
+# Future releases must first increment VERSION, align component versions,
+# prepare new release notes and publish with a new tag after verification.
 
 on:
   push:
@@ -26,7 +25,7 @@ jobs:
     timeout-minutes: 75
     if: >-
       github.ref == 'refs/heads/main' &&
-      startsWith(github.event.head_commit.message, 'chore(release): finalize v1.0.0')
+      startsWith(github.event.head_commit.message, 'chore(release): publish v')
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -265,7 +264,7 @@ jobs:
             exit 1
           fi
 
-      - name: Replace old v1.0.0 release and tag only after all checks pass
+      - name: Create annotated tag only for an unpublished version
         if: github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -274,13 +273,15 @@ jobs:
           set -euo pipefail
           git config user.name Sanskar
           git config user.email sanskarin@outlook.in
-          # Preserve published files until all same-commit CI checks, checksum
-          # verification and platform packaging have completed successfully.
-          gh release view "${RELEASE_TAG}" --json tagName --jq .tagName | grep -Fx "${RELEASE_TAG}"
-          git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null
-          gh release delete "${RELEASE_TAG}" --yes
-          gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${RELEASE_TAG}"
-          git tag -a "${RELEASE_TAG}" -m "CampusCore ${RELEASE_TAG} - final website-linked release"
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "::error::Release ${RELEASE_TAG} already exists. Bump VERSION; never replace an existing release."
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "::error::Tag ${RELEASE_TAG} already exists. Bump VERSION; never move a published tag."
+            exit 1
+          fi
+          git tag -a "${RELEASE_TAG}" -m "CampusCore ${RELEASE_TAG}"
           git push origin "refs/tags/${RELEASE_TAG}"
 
       - name: Publish GitHub release with executable assets
