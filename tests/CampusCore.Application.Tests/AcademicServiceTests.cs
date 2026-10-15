@@ -49,7 +49,7 @@ public sealed class AcademicServiceTests
     {
         var request = new MarkUpsert(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Quiz", 9.999m, 10m);
 
-        var exception = await Assert.ThrowsExceptionAsync<ArgumentException>(() => _service.RecordMarkAsync(request, CancellationToken.None));
+        var exception = await Assert.ThrowsExactlyAsync<ArgumentException>(() => _service.RecordMarkAsync(request, CancellationToken.None));
 
         Assert.AreEqual("Score values cannot have more than two decimal places.", exception.Message);
     }
@@ -76,7 +76,7 @@ public sealed class AcademicServiceTests
     {
         var request = new AttendanceUpsert(Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), (AttendanceStatus)999, null);
 
-        var exception = await Assert.ThrowsExceptionAsync<ArgumentException>(() => _service.UpsertAttendanceAsync(request, CancellationToken.None));
+        var exception = await Assert.ThrowsExactlyAsync<ArgumentException>(() => _service.UpsertAttendanceAsync(request, CancellationToken.None));
 
         Assert.AreEqual("Attendance status is invalid.", exception.Message);
     }
@@ -86,7 +86,7 @@ public sealed class AcademicServiceTests
     {
         var request = new AttendanceUpsert(Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), AttendanceStatus.Present, new string('x', 501));
 
-        var exception = await Assert.ThrowsExceptionAsync<ArgumentException>(() => _service.UpsertAttendanceAsync(request, CancellationToken.None));
+        var exception = await Assert.ThrowsExactlyAsync<ArgumentException>(() => _service.UpsertAttendanceAsync(request, CancellationToken.None));
 
         Assert.AreEqual("Attendance note cannot exceed 500 characters.", exception.Message);
     }
