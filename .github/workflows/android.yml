@@ -1,0 +1,75 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'VERSION'
+      - 'src/CampusCore.Web/**'
+      - '.github/workflows/android.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'VERSION'
+      - 'src/CampusCore.Web/**'
+      - '.github/workflows/android.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  debug-apk:
+    name: Build Android debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: src/CampusCore.Web
+    env:
+      VITE_API_BASE_URL: https://api.example.test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Load CampusCore version
+        shell: bash
+        run: echo "VITE_APP_VERSION=$(cat ../../VERSION)-ci" >> "$GITHUB_ENV"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build Android web assets
+        run: npm run build:android
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Verify Capacitor synchronization
+        run: npx cap sync android
+
+      - name: Assemble debug APK
+        working-directory: src/CampusCore.Web/android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: campuscore-android-debug-${{ github.sha }}
+          path: src/CampusCore.Web/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7

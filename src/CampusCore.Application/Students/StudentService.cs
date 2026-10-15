@@ -15,11 +15,13 @@ public sealed class StudentService(IApplicationDbContext db, IAuditWriter audit)
 
         if (!string.IsNullOrWhiteSpace(query))
         {
-            var q = query.Trim().ToLower();
+            var q = query.Trim();
+            if (q.Length > 120) throw new ArgumentException("Search query cannot exceed 120 characters.");
+            var normalized = q.ToLower();
             source = source.Where(x =>
-                x.AdmissionNumber.ToLower().Contains(q) ||
-                x.FirstName.ToLower().Contains(q) ||
-                x.LastName.ToLower().Contains(q));
+                x.AdmissionNumber.ToLower().Contains(normalized) ||
+                x.FirstName.ToLower().Contains(normalized) ||
+                x.LastName.ToLower().Contains(normalized));
         }
 
         if (active.HasValue) source = source.Where(x => x.IsActive == active.Value);
@@ -62,15 +64,15 @@ public sealed class StudentService(IApplicationDbContext db, IAuditWriter audit)
 
     public async Task<Guid> CreateAsync(CreateStudentRequest request, CancellationToken cancellationToken)
     {
-        var admission = request.AdmissionNumber.Trim();
+        var admission = NormalizeRequired(request.AdmissionNumber, "Admission number");
         if (await db.Students.AnyAsync(x => x.AdmissionNumber == admission, cancellationToken))
             throw new InvalidOperationException("Admission number already exists.");
 
         var student = new Student
         {
             AdmissionNumber = admission,
-            FirstName = request.FirstName.Trim(),
-            LastName = request.LastName.Trim(),
+            FirstName = NormalizeRequired(request.FirstName, "First name"),
+            LastName = NormalizeOptional(request.LastName) ?? string.Empty,
             DateOfBirth = request.DateOfBirth,
             Email = NormalizeOptional(request.Email),
             Phone = NormalizeOptional(request.Phone),
@@ -88,8 +90,8 @@ public sealed class StudentService(IApplicationDbContext db, IAuditWriter audit)
         var student = await db.Students.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (student is null) return false;
 
-        student.FirstName = request.FirstName.Trim();
-        student.LastName = request.LastName.Trim();
+        student.FirstName = NormalizeRequired(request.FirstName, "First name");
+        student.LastName = NormalizeOptional(request.LastName) ?? string.Empty;
         student.DateOfBirth = request.DateOfBirth;
         student.Email = NormalizeOptional(request.Email);
         student.Phone = NormalizeOptional(request.Phone);
@@ -106,8 +108,15 @@ public sealed class StudentService(IApplicationDbContext db, IAuditWriter audit)
     {
         var exists = await db.Students.AnyAsync(x => x.Id == studentId, cancellationToken);
         if (!exists) return null;
-        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Relationship))
-            throw new ArgumentException("Guardian name and relationship are required.");
+
+        var name = NormalizeRequired(request.Name, "Guardian name");
+        var relationship = NormalizeRequired(request.Relationship, "Guardian relationship");
+        if (name.Length > 200) throw new ArgumentException("Guardian name cannot exceed 200 characters.");
+        if (relationship.Length > 80) throw new ArgumentException("Guardian relationship cannot exceed 80 characters.");
+        var email = NormalizeOptional(request.Email);
+        var phone = NormalizeOptional(request.Phone);
+        if ((email?.Length ?? 0) > 254) throw new ArgumentException("Guardian email cannot exceed 254 characters.");
+        if ((phone?.Length ?? 0) > 40) throw new ArgumentException("Guardian phone cannot exceed 40 characters.");
 
         if (request.IsPrimary)
         {
@@ -118,16 +127,22 @@ public sealed class StudentService(IApplicationDbContext db, IAuditWriter audit)
         var entity = new Guardian
         {
             StudentId = studentId,
-            Name = request.Name.Trim(),
-            Relationship = request.Relationship.Trim(),
-            Email = NormalizeOptional(request.Email),
-            Phone = NormalizeOptional(request.Phone),
+            Name = name,
+            Relationship = relationship,
+            Email = email,
+            Phone = phone,
             IsPrimary = request.IsPrimary
         };
         db.Guardians.Add(entity);
         await db.SaveChangesAsync(cancellationToken);
         await audit.WriteAsync("guardian.created", nameof(Guardian), entity.Id.ToString(), new { StudentId = studentId }, cancellationToken);
         return entity.Id;
+    }
+
+    private static string NormalizeRequired(string? value, string fieldName)
+    {
+        if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException($"{fieldName} is required.");
+        return value.Trim();
     }
 
     private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

@@ -45,8 +45,14 @@ public sealed class LocalFileStorage : IFileStorage
 
     private string Resolve(string storedName)
     {
-        if (string.IsNullOrWhiteSpace(storedName) || Path.GetFileName(storedName) != storedName)
+        if (string.IsNullOrWhiteSpace(storedName) ||
+            storedName.Contains('/') ||
+            storedName.Contains('\\') ||
+            Path.GetFileName(storedName) != storedName)
+        {
             throw new ArgumentException("Stored file name is invalid.", nameof(storedName));
+        }
+
         var fullPath = Path.GetFullPath(Path.Combine(_root, storedName));
         if (!fullPath.StartsWith(_root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
             throw new InvalidOperationException("Resolved storage path is outside the configured root.");

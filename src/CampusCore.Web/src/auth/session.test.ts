@@ -43,8 +43,23 @@ describe('auth session storage', () => {
     expect(window.sessionStorage.length).toBe(0);
   });
 
-  it('clears malformed session data safely', () => {
+  it('clears malformed JSON safely', () => {
     window.sessionStorage.setItem('campuscore.auth', '{not-json');
+    expect(loadSession()).toBeNull();
+    expect(window.sessionStorage.length).toBe(0);
+  });
+
+  it.each([
+    { accessToken: '', expiresAtUtc: validSession().expiresAtUtc, displayName: 'User', roles: [] },
+    { accessToken: 'token', expiresAtUtc: 'not-a-date', displayName: 'User', roles: [] },
+    { accessToken: 'token', expiresAtUtc: validSession().expiresAtUtc, displayName: 12, roles: [] },
+    { accessToken: 'token', expiresAtUtc: validSession().expiresAtUtc, displayName: 'User', roles: 'Administrator' },
+    { accessToken: 'token', expiresAtUtc: validSession().expiresAtUtc, displayName: 'User', roles: ['Administrator', 4] },
+    null,
+    ['unexpected'],
+  ])('rejects invalid persisted session shapes: %j', (value) => {
+    window.sessionStorage.setItem('campuscore.auth', JSON.stringify(value));
+
     expect(loadSession()).toBeNull();
     expect(window.sessionStorage.length).toBe(0);
   });

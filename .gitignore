@@ -12,12 +12,17 @@ node_modules/
 dist/
 .vite/
 playwright-report/
+playwright-fullstack-report/
 test-results/
+
+# Generated native projects
+src/CampusCore.Web/android/
 
 # Environment / secrets
 .env
 .env.*
 !.env.example
+!src/CampusCore.Web/.env.android.example
 appsettings.Development.local.json
 
 # IDE / OS
@@ -32,3 +37,4 @@ Thumbs.db
 # Generated
 *.log
 artifacts/
+backups/
