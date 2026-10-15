@@ -188,12 +188,12 @@ test('runs critical administrator and academic workflows against the real stack'
     await expect(page.getByRole('heading', { name: 'Announcements' })).toBeVisible();
     await page.getByRole('button', { name: 'New announcement' }).click();
 
-    await page.getByLabel('Title').fill('v0.2.0 release-candidate smoke notice');
+    await page.getByLabel('Title').fill('v1.0.0 release-candidate smoke notice');
     await page.getByLabel('Message').fill('This fictional notice verifies the real announcement persistence workflow.');
     await page.getByRole('button', { name: 'Publish', exact: true }).click();
 
     await expect(page.getByText('Announcement published.', { exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'v0.2.0 release-candidate smoke notice' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'v1.0.0 release-candidate smoke notice' })).toBeVisible();
   });
 
   await test.step('persist institution settings and verify its audit event', async () => {
@@ -201,13 +201,13 @@ test('runs critical administrator and academic workflows against the real stack'
     await expect(page.getByRole('heading', { name: 'Settings & audit' })).toBeVisible();
 
     const institutionName = page.getByLabel('Name');
-    await institutionName.fill('CampusCore v0.2.0 E2E Institution');
+    await institutionName.fill('CampusCore v1.0.0 E2E Institution');
     await page.getByRole('button', { name: 'Save settings' }).click();
     await expect(page.getByText('Institution settings saved.', { exact: true })).toBeVisible();
 
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Settings & audit' })).toBeVisible();
-    await expect(page.getByLabel('Name')).toHaveValue('CampusCore v0.2.0 E2E Institution');
+    await expect(page.getByLabel('Name')).toHaveValue('CampusCore v1.0.0 E2E Institution');
     await expect(page.getByText('settings.updated')).toBeVisible();
   });
 
