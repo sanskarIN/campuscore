@@ -192,7 +192,7 @@ test('runs critical administrator and academic workflows against the real stack'
     await page.getByLabel('Message').fill('This fictional notice verifies the real announcement persistence workflow.');
     await page.getByRole('button', { name: 'Publish', exact: true }).click();
 
-    await expect(page.getByRole('status')).toContainText('Announcement published.');
+    await expect(page.getByText('Announcement published.', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'v0.2.0 release-candidate smoke notice' })).toBeVisible();
   });
 
@@ -203,7 +203,7 @@ test('runs critical administrator and academic workflows against the real stack'
     const institutionName = page.getByLabel('Name');
     await institutionName.fill('CampusCore v0.2.0 E2E Institution');
     await page.getByRole('button', { name: 'Save settings' }).click();
-    await expect(page.getByRole('status')).toContainText('Institution settings saved.');
+    await expect(page.getByText('Institution settings saved.', { exact: true })).toBeVisible();
 
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Settings & audit' })).toBeVisible();
