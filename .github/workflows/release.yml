@@ -175,6 +175,9 @@ jobs:
           sha256sum --check SHA256SUMS.txt
           for archive in *.tar.gz; do tar -tzf "$archive" >/dev/null; done
           for archive in *.zip; do unzip -tq "$archive" >/dev/null; done
+          unzip -Z1 "campuscore-api-${RELEASE_TAG}-win-x64.zip" | grep -Fx 'CampusCore.Api.exe'
+          tar -tzf "campuscore-api-${RELEASE_TAG}-linux-x64.tar.gz" | grep -Fx './CampusCore.Api'
+          tar -tzf "campuscore-api-${RELEASE_TAG}-osx-arm64.tar.gz" | grep -Fx './CampusCore.Api'
 
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v7
