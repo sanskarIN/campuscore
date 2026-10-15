@@ -57,8 +57,10 @@ CampusCore **v1.0.0** was released on October 15, 2026 as the first stable self-
 - [x] Add integrity hashes, migration SQL and documented executable/server installation boundaries.
 - [x] Include a clearly marked Android debug **test-only** APK in release assets.
 - [x] Gate automated tagging and GitHub Release creation on successful same-commit quality and security workflows.
-- [x] Confirm all seven required workflows passed on tagged v1.0.0 revision `3bf2545e`.
-- [x] Confirm annotated public tag `v1.0.0`, stable GitHub Release, ten nonempty assets and SHA-256 digests (2026-10-15).
+- [x] Confirm all seven required workflows passed on the author-requested rebuilt v1.0.0 revision `aa506acd` (2026-10-15).
+- [x] Confirm replaced annotated tag `v1.0.0` resolves to `aa506acd`, the republished stable GitHub Release has ten new nonempty assets and SHA-256 digests (2026-10-15).
+
+- [x] Remove the retired public support mailbox and publish the corrected Buy Me a Coffee destination in rebuilt Web/PWA and Android test assets; release packaging verified both strings.
 
 ## After v1.0.0 — Future distribution enhancements
 
