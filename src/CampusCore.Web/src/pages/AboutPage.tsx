@@ -24,6 +24,7 @@ export function AboutPage() {
           <ul className="link-list">
             <li><a href="https://github.com/sanskarIN/campuscore" target="_blank" rel="noreferrer">CampusCore repository</a><span className="muted">Source, issues, releases and contribution history</span></li>
             <li><a href="https://github.com/sanskarIN" target="_blank" rel="noreferrer">GitHub · sanskarIN</a><span className="muted">More open-source projects</span></li>
+            <li><a href="https://sanskarin.github.io" target="_blank" rel="noopener noreferrer">Author website</a><span className="muted">Developer portfolio and project information; not the CampusCore API backend</span></li>
             <li><a href="https://buymeacoffee.com/SanskarCodes" target="_blank" rel="noreferrer">Buy Me a Coffee</a><span className="muted">Optional support; never required to use CampusCore</span></li>
           </ul>
         </article>
