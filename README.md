@@ -10,7 +10,7 @@
 
 **Made by the Sanskar**
 
-**Current prepared version:** `0.2.0` release candidate. The `v0.2.0` tag is intentionally not considered released until the required GitHub Actions gates are confirmed green. The root [`VERSION`](VERSION) file is the release version source of truth.
+**Target version:** `1.0.0` stable. GitHub Actions publishes the `v1.0.0` release with platform-specific server binaries and other downloadable assets **only after required validation succeeds**. The root [`VERSION`](VERSION) file is the source of truth.
 
 ## Why CampusCore
 
@@ -33,7 +33,7 @@ CampusCore centralizes student records, guardians, enrollment, staff, attendance
 - PostgreSQL persistence with EF Core migrations and transaction-aware services
 - Structured logging, security headers, rate limiting, production configuration validation, liveness/readiness checks, and OpenAPI
 - Cross-platform backup/verification/restore scripts, recovery drills, migration integrity checks, deployment smoke tests, accessibility E2E tests, and bundle budgets
-- Repository-wide version consistency and tag/artifact verification for v0.2.0
+- Repository-wide version consistency and gated tag/artifact verification for v1.0.0
 
 ## Supported platforms
 
@@ -153,7 +153,7 @@ npm install
 npm run build
 ```
 
-Tagged releases are built by `.github/workflows/release.yml`, which rejects a tag that does not match `VERSION`. The prepared v0.2.0 candidate notes are in [`docs/releases/v0.2.0.md`](docs/releases/v0.2.0.md). See [`docs/release.md`](docs/release.md) and [`docs/deployment.md`](docs/deployment.md).
+The GitHub Actions [release workflow](.github/workflows/release.yml) verifies the version, builds platform-specific **API server executables** (Windows x64, Linux x64, Apple Silicon macOS), packages the Web/PWA and browser companion, and generates SHA-256 checksums. It also includes a clearly marked **debug/test-only Android APK**. The final release is automatically tagged and published only after required workflows pass for that commit. These API executables run a server and still require PostgreSQL and securely provisioned production configuration; they are not standalone desktop applications. Read the [`v1.0.0 release notes`](docs/releases/v1.0.0.md), [`release guide`](docs/release.md) and [`deployment guide`](docs/deployment.md).
 
 The repository does not yet contain an npm lockfile, so Node automation intentionally uses `npm install`. Do not change clean/release jobs to `npm ci` until a reviewed lockfile is committed.
 
