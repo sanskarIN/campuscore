@@ -10,7 +10,7 @@
 
 **Made by the Sanskar**
 
-**Current stable release:** [CampusCore v1.0.0](https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0) (published October 15, 2026). The release workflow requires same-commit verification and packages cross-platform artifacts. The release includes downloadable Windows x64, Linux x64, and macOS Apple Silicon API server executables, a Web/PWA archive, a browser companion, a debug-only Android test APK, SQL migrations, and SHA-256 checksums. The root [`VERSION`](VERSION) file remains the source of truth.
+**Current stable release:** [CampusCore v1.0.0](https://github.com/sanskarIN/campuscore/releases/tag/v1.0.0) (published October 15, 2026). The corrected release was rebuilt and republished on October 15, 2026 from verified commit [`aa506acd`](https://github.com/sanskarIN/campuscore/commit/aa506acd974cfd740d7d2be3d5be963d5dc9279e); all seven required checks and the Release workflow passed. Download the current archives and use their current SHA-256 checksums, as the first publication of this version was replaced. The release includes downloadable Windows x64, Linux x64, and macOS Apple Silicon API server executables, a Web/PWA archive, a browser companion, a debug-only Android test APK, SQL migrations, and SHA-256 checksums. The root [`VERSION`](VERSION) file remains the source of truth.
 
 ## Why CampusCore
 
