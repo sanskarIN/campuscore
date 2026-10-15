@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AuthResponse } from '../types';
 import { saveSession } from '../auth/session';
-import { ApiError, apiDownload, apiRequest } from './client';
+import { apiDownload, apiRequest } from './client';
 
 function memoryStorage(): Storage {
   const values = new Map<string, string>();
@@ -52,7 +52,7 @@ describe('API client', () => {
       headers: { 'Content-Type': 'application/problem+json' },
     })));
 
-    await expect(apiRequest('/api/test')).rejects.toMatchObject<ApiError>({ status: 400, message: 'Validation failed safely.' });
+    await expect(apiRequest('/api/test')).rejects.toMatchObject({ status: 400, message: 'Validation failed safely.' });
   });
 
   it('clears the session after an authenticated 401 response', async () => {
