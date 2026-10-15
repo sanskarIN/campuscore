@@ -4,6 +4,11 @@ All notable changes are documented here. The project follows Keep a Changelog co
 
 ## [Unreleased]
 
+### Author website / final v1.0.0 repackaging (2026-10-15)
+- Linked https://sanskarin.github.io in the public documentation, project support resources, release notes, and Web/PWA About page, including the Android native shell's embedded Web UI.
+- The website is a developer portfolio link, not a replacement for the CampusCore backend URL.
+- Requested a final rebuild of v1.0.0 with corrected public links while retaining the existing backend/API, platform and Play Store production limitations.
+
 ### Maintenance after v1.0.0 publication (2026-10-15)
 - Corrected the optional Buy Me a Coffee destination to https://buymeacoffee.com/SanskarCodes in repository funding, README, SUPPORT.md, the Web/PWA About page source, and the published GitHub Release notes.
 - Completed the fully gated replacement of the original v1.0.0 tag and ten assets on commit `aa506acd` with all eight workflows passing so the corrected Web/PWA and debug Android packages contain the updated destination. The replaced files and checksums differ from the first v1.0.0 publication; existing users must redownload and reverify.
