@@ -4,7 +4,7 @@
     <ProjectReference Include="../CampusCore.Infrastructure/CampusCore.Infrastructure.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.19" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.19">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.21">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
